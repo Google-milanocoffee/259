@@ -382,7 +382,7 @@ function openAppOnIOS(appScheme, webLink, fallbackWebLink) {
         if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
     }, 100);
 }
-// Mở Grab App
+// Mở Grab App (Android fix)
 function openGrab() {
     notifyGrabClick();
     
@@ -390,20 +390,14 @@ function openGrab() {
     const android = isAndroid();
     
     if (ios) {
-        // iOS: Dùng iframe để kích hoạt app (hoạt động trên Safari)
-        const grabAppScheme = "grab://";
-        const grabWebLink = GRAB_LINK;
-        const grabFallback = "https://grab.com/vn/";
-        
-        // Tạo link mở app
+        // iOS: dùng iframe
         const iframe = document.createElement("iframe");
         iframe.style.display = "none";
-        iframe.src = grabAppScheme;
+        iframe.src = "grab://";
         document.body.appendChild(iframe);
         
-        // Fallback sau 800ms
         const timeout = setTimeout(function() {
-            window.location.href = grabWebLink;
+            window.location.href = GRAB_LINK;
         }, 800);
         
         window.addEventListener('pagehide', function() {
@@ -415,11 +409,19 @@ function openGrab() {
         }, 150);
     } 
     else if (android) {
-        const grabIntent = `intent://${GRAB_LINK.replace('https://', '')}#Intent;scheme=https;package=com.grabtaxi.passenger;end`;
-        window.location.href = grabIntent;
-        setTimeout(function() {
+        // Android: Dùng link grab:// trực tiếp (đơn giản hơn)
+        // Cách 1: Thử mở bằng grab:// scheme trước
+        window.location.href = "grab://";
+        
+        // Dự phòng: sau 1 giây chuyển sang web nếu không có app
+        const timeout = setTimeout(function() {
             window.location.href = GRAB_LINK;
-        }, 1500);
+        }, 1000);
+        
+        // Nếu trang bị ẩn (chuyển sang app) thì xóa timeout
+        window.addEventListener('pagehide', function() {
+            clearTimeout(timeout);
+        });
     }
     else {
         const link = document.createElement("a");
@@ -432,7 +434,7 @@ function openGrab() {
     }
 }
 
-// Mở Zalo App
+// Mở Zalo App (Android fix)
 function openZalo() {
     notifyZaloClick();
     
@@ -440,17 +442,14 @@ function openZalo() {
     const android = isAndroid();
     
     if (ios) {
-        // iOS: Dùng iframe để kích hoạt app Zalo
-        const zaloAppScheme = "zalo://";
-        const zaloWebLink = ZALO_LINK;
-        
+        // iOS: dùng iframe
         const iframe = document.createElement("iframe");
         iframe.style.display = "none";
-        iframe.src = zaloAppScheme;
+        iframe.src = "zalo://";
         document.body.appendChild(iframe);
         
         const timeout = setTimeout(function() {
-            window.location.href = zaloWebLink;
+            window.location.href = ZALO_LINK;
         }, 800);
         
         window.addEventListener('pagehide', function() {
@@ -462,11 +461,16 @@ function openZalo() {
         }, 150);
     }
     else if (android) {
-        const zaloIntent = `intent://chat/#Intent;scheme=zalo;package=com.zing.zalo;end`;
-        window.location.href = zaloIntent;
-        setTimeout(function() {
+        // Android: Dùng zalo:// scheme trực tiếp
+        window.location.href = "zalo://";
+        
+        const timeout = setTimeout(function() {
             window.location.href = ZALO_LINK;
-        }, 1500);
+        }, 1000);
+        
+        window.addEventListener('pagehide', function() {
+            clearTimeout(timeout);
+        });
     }
     else {
         window.location.href = ZALO_LINK;
