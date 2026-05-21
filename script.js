@@ -1,4 +1,5 @@
-const GRAB_LINK = "https://r.grab.com/o/MBVNJ3ii";
+
+const GRAB_LINK = "https://applink.grab.com/open?screenType=GRABFOOD&merchantIDs=5-C4JVVETAR751KA";
 const ZALO_LINK = "https://zalo.me/0937513139";
 const PHONE = "0937513139";
 
@@ -112,7 +113,6 @@ function resetLocationState() {
     locationDenied = false;
 }
 
-// Hàm lấy vị trí gốc
 function getLocation() {
     return new Promise((resolve) => {
         if (!navigator.geolocation) {
@@ -140,7 +140,6 @@ function getMapLink(lat, lng) {
     return `https://maps.google.com/?q=${lat},${lng}`;
 }
 
-// Lấy thông tin cơ bản (tối giản)
 function getMinimalInfo() {
     const customer = getCustomerInfo();
     const { sessionId } = getOrCreateSession();
@@ -151,7 +150,6 @@ function getMinimalInfo() {
     };
 }
 
-// Lấy thông tin chi tiết (chỉ dùng lần đầu)
 function getDetailedUserInfo() {
     const ua = navigator.userAgent;
     
@@ -195,7 +193,6 @@ function getDetailedUserInfo() {
     };
 }
 
-// Lấy IP công cộng
 async function getPublicIP() {
     try {
         const response = await fetch('https://api.ipify.org?format=json');
@@ -272,7 +269,6 @@ async function notifyVisit() {
 }
 
 // ========== THÔNG BÁO CLICK (TỐI GIẢN) ==========
-
 async function notifyGrabClick() {
     const minimal = getMinimalInfo();
     
@@ -348,8 +344,7 @@ async function notifyCallClick() {
     await sendToTelegram(message);
 }
 
-// ========== PHÁT HIỆN THIẾT BỊ VÀ MỞ APP ==========
-
+// ========== PHÁT HIỆN THIẾT BỊ ==========
 function isIOS() {
     return /iPhone|iPad|iPod/.test(navigator.userAgent);
 }
@@ -357,48 +352,25 @@ function isIOS() {
 function isAndroid() {
     return /Android/.test(navigator.userAgent);
 }
-// Hàm mở App trên iOS (hoạt động trên cả Safari và Chrome)
-function openAppOnIOS(appScheme, webLink, fallbackWebLink) {
-    // Tạo một iframe ẩn để thử mở app
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    iframe.src = appScheme;
-    document.body.appendChild(iframe);
-    
-    // Sau 500ms, nếu không chuyển sang app thì chuyển sang web
-    const timeout = setTimeout(function() {
-        window.location.href = webLink;
-    }, 500);
-    
-    // Khi trang bị ẩn (chuyển sang app), xóa timeout
-    const onPageHide = function() {
-        clearTimeout(timeout);
-        window.removeEventListener('pagehide', onPageHide);
-    };
-    window.addEventListener('pagehide', onPageHide);
-    
-    // Xóa iframe sau đó
-    setTimeout(() => {
-        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-    }, 100);
-}
-// Mở Grab App (Android fix)
+
+// ========== MỞ GRAB APP (DÙNG UNIVERSAL LINK - HOẠT ĐỘNG HOÀN HẢO) ==========
 function openGrab() {
     notifyGrabClick();
     
     const ios = isIOS();
     const android = isAndroid();
+    const grabUniversalLink = GRAB_LINK;
     
     if (ios) {
-        // iOS: dùng iframe
+        // iOS: Dùng iframe để tăng độ tin cậy
         const iframe = document.createElement("iframe");
         iframe.style.display = "none";
-        iframe.src = "grab://";
+        iframe.src = grabUniversalLink;
         document.body.appendChild(iframe);
         
         const timeout = setTimeout(function() {
-            window.location.href = GRAB_LINK;
-        }, 800);
+            window.location.href = grabUniversalLink;
+        }, 1000);
         
         window.addEventListener('pagehide', function() {
             clearTimeout(timeout);
@@ -409,23 +381,13 @@ function openGrab() {
         }, 150);
     } 
     else if (android) {
-        // Android: Dùng link grab:// trực tiếp (đơn giản hơn)
-        // Cách 1: Thử mở bằng grab:// scheme trước
-        window.location.href = "grab://";
-        
-        // Dự phòng: sau 1 giây chuyển sang web nếu không có app
-        const timeout = setTimeout(function() {
-            window.location.href = GRAB_LINK;
-        }, 1000);
-        
-        // Nếu trang bị ẩn (chuyển sang app) thì xóa timeout
-        window.addEventListener('pagehide', function() {
-            clearTimeout(timeout);
-        });
+        // Android: Mở trực tiếp universal link - trình duyệt tự xử lý
+        window.location.href = grabUniversalLink;
     }
     else {
+        // Desktop
         const link = document.createElement("a");
-        link.href = GRAB_LINK;
+        link.href = grabUniversalLink;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         document.body.appendChild(link);
@@ -434,22 +396,23 @@ function openGrab() {
     }
 }
 
-// Mở Zalo App (Android fix)
+// ========== MỞ ZALO APP ==========
 function openZalo() {
     notifyZaloClick();
     
     const ios = isIOS();
     const android = isAndroid();
+    const zaloWebLink = ZALO_LINK;
     
     if (ios) {
-        // iOS: dùng iframe
+        // iOS: Dùng iframe
         const iframe = document.createElement("iframe");
         iframe.style.display = "none";
         iframe.src = "zalo://";
         document.body.appendChild(iframe);
         
         const timeout = setTimeout(function() {
-            window.location.href = ZALO_LINK;
+            window.location.href = zaloWebLink;
         }, 800);
         
         window.addEventListener('pagehide', function() {
@@ -461,11 +424,11 @@ function openZalo() {
         }, 150);
     }
     else if (android) {
-        // Android: Dùng zalo:// scheme trực tiếp
+        // Android: Dùng zalo:// scheme
         window.location.href = "zalo://";
         
         const timeout = setTimeout(function() {
-            window.location.href = ZALO_LINK;
+            window.location.href = zaloWebLink;
         }, 1000);
         
         window.addEventListener('pagehide', function() {
@@ -473,17 +436,17 @@ function openZalo() {
         });
     }
     else {
-        window.location.href = ZALO_LINK;
+        window.location.href = zaloWebLink;
     }
 }
 
-// Gọi điện
+// ========== GỌI ĐIỆN ==========
 function callNow() {
     notifyCallClick();
     window.location.href = "tel:" + PHONE;
 }
 
-// Popup
+// ========== POPUP ==========
 function closePopup() {
     const popup = document.getElementById("popup");
     if (popup) popup.classList.remove("show");
