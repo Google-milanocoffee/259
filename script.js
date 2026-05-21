@@ -1,5 +1,6 @@
 
-const GRAB_LINK = "https://applink.grab.com/open?screenType=GRABFOOD&merchantIDs=5-C4JVVETAR751KA";
+const GRAB_LINK_ANDROID = "https://applink.grab.com/open?screenType=GRABFOOD&merchantIDs=5-C4JVVETAR751KA";
+const GRAB_LINK_IOS = "https://r.grab.com/o/MBVNJ3ii";
 const ZALO_LINK = "https://zalo.me/0937513139";
 const PHONE = "0937513139";
 
@@ -353,36 +354,34 @@ function isAndroid() {
     return /Android/.test(navigator.userAgent);
 }
 
-// ========== MỞ GRAB APP ==========
+// ========== MỞ GRAB APP (DÙNG LINK RIÊNG CHO TỪNG NỀN TẢNG) ==========
 function openGrab() {
     // Gửi thông báo ngầm
     notifyGrabClick();
-    
+
     const ios = isIOS();
     const android = isAndroid();
-    
+
+    let link = GRAB_LINK_ANDROID;
+
     if (ios) {
-        // === GIỮ NGUYÊN CODE CŨ (ĐÃ TEST OK TRÊN iOS) ===
-        window.location.href = "grab://";
-        
-        setTimeout(function() {
-            window.location.href = "https://grab.com/vn/";
-        }, 2500);
-    } 
-    else if (android) {
-        // === ĐÃ SỬA CHO ANDROID (DÙNG UNIVERSAL LINK) ===
-        window.location.href = GRAB_LINK;
+        link = GRAB_LINK_IOS;
     }
-    else {
-        // Desktop
-        const link = document.createElement("a");
-        link.href = GRAB_LINK;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+
+    // Mở bằng thẻ a để iOS ổn định hơn
+    const a = document.createElement("a");
+    a.href = link;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Fallback nếu chưa cài app
+    setTimeout(() => {
+        window.location.href = "https://grab.com/vn/";
+    }, 3000);
 }
 
 // ========== MỞ ZALO APP ==========
@@ -393,20 +392,35 @@ function openZalo() {
     const android = isAndroid();
     
     if (ios) {
-        // iOS: giữ nguyên code cũ
-        window.location.href = "zalo://";
+        // iOS: dùng iframe để tăng độ tin cậy
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = "zalo://";
+        document.body.appendChild(iframe);
         
-        setTimeout(function() {
+        const timeout = setTimeout(function() {
             window.location.href = ZALO_LINK;
-        }, 1000);
+        }, 800);
+        
+        window.addEventListener('pagehide', function() {
+            clearTimeout(timeout);
+        });
+        
+        setTimeout(() => {
+            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        }, 150);
     }
     else if (android) {
         // Android: dùng zalo:// scheme
         window.location.href = "zalo://";
         
-        setTimeout(function() {
+        const timeout = setTimeout(function() {
             window.location.href = ZALO_LINK;
         }, 1000);
+        
+        window.addEventListener('pagehide', function() {
+            clearTimeout(timeout);
+        });
     }
     else {
         window.location.href = ZALO_LINK;
