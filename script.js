@@ -215,10 +215,36 @@ async function notifyCallClick() {
     await sendToTelegram(message);
 }
 
-// === CÁC HÀM CHÍNH ===
 function openGrab() {
     notifyGrabClick().then(() => {
         setTimeout(() => {
+            // Phát hiện iOS
+            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            
+            if (isIOS) {
+                // Cách 1: Dùng window.location (thường hoạt động tốt trên iOS)
+                window.location.href = GRAB_LINK;
+                
+                // Cách 2 (dự phòng): Nếu không chuyển, sau 2.5s chuyển sang web
+                setTimeout(function() {
+                    window.location.href = "https://grab.com/vn/";
+                }, 2500);
+            } else {
+                // Android / PC: dùng cách cũ
+                const link = document.createElement("a");
+                link.href = GRAB_LINK;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }, 300);
+    }).catch(() => {
+        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+        if (isIOS) {
+            window.location.href = GRAB_LINK;
+        } else {
             const link = document.createElement("a");
             link.href = GRAB_LINK;
             link.target = "_blank";
@@ -226,15 +252,7 @@ function openGrab() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }, 300);
-    }).catch(() => {
-        const link = document.createElement("a");
-        link.href = GRAB_LINK;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        }
     });
 }
 
