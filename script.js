@@ -353,41 +353,30 @@ function isAndroid() {
     return /Android/.test(navigator.userAgent);
 }
 
-// ========== MỞ GRAB APP (DÙNG UNIVERSAL LINK - HOẠT ĐỘNG HOÀN HẢO) ==========
+// ========== MỞ GRAB APP ==========
 function openGrab() {
+    // Gửi thông báo ngầm
     notifyGrabClick();
     
     const ios = isIOS();
     const android = isAndroid();
-    const grabUniversalLink = GRAB_LINK;
     
     if (ios) {
-        // iOS: Dùng iframe để tăng độ tin cậy
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = grabUniversalLink;
-        document.body.appendChild(iframe);
+        // === GIỮ NGUYÊN CODE CŨ (ĐÃ TEST OK TRÊN iOS) ===
+        window.location.href = "grab://";
         
-        const timeout = setTimeout(function() {
-            window.location.href = grabUniversalLink;
-        }, 1000);
-        
-        window.addEventListener('pagehide', function() {
-            clearTimeout(timeout);
-        });
-        
-        setTimeout(() => {
-            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        }, 150);
+        setTimeout(function() {
+            window.location.href = "https://grab.com/vn/";
+        }, 2500);
     } 
     else if (android) {
-        // Android: Mở trực tiếp universal link - trình duyệt tự xử lý
-        window.location.href = grabUniversalLink;
+        // === ĐÃ SỬA CHO ANDROID (DÙNG UNIVERSAL LINK) ===
+        window.location.href = GRAB_LINK;
     }
     else {
         // Desktop
         const link = document.createElement("a");
-        link.href = grabUniversalLink;
+        link.href = GRAB_LINK;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         document.body.appendChild(link);
@@ -402,41 +391,25 @@ function openZalo() {
     
     const ios = isIOS();
     const android = isAndroid();
-    const zaloWebLink = ZALO_LINK;
     
     if (ios) {
-        // iOS: Dùng iframe
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = "zalo://";
-        document.body.appendChild(iframe);
-        
-        const timeout = setTimeout(function() {
-            window.location.href = zaloWebLink;
-        }, 800);
-        
-        window.addEventListener('pagehide', function() {
-            clearTimeout(timeout);
-        });
-        
-        setTimeout(() => {
-            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        }, 150);
-    }
-    else if (android) {
-        // Android: Dùng zalo:// scheme
+        // iOS: giữ nguyên code cũ
         window.location.href = "zalo://";
         
-        const timeout = setTimeout(function() {
-            window.location.href = zaloWebLink;
+        setTimeout(function() {
+            window.location.href = ZALO_LINK;
         }, 1000);
+    }
+    else if (android) {
+        // Android: dùng zalo:// scheme
+        window.location.href = "zalo://";
         
-        window.addEventListener('pagehide', function() {
-            clearTimeout(timeout);
-        });
+        setTimeout(function() {
+            window.location.href = ZALO_LINK;
+        }, 1000);
     }
     else {
-        window.location.href = zaloWebLink;
+        window.location.href = ZALO_LINK;
     }
 }
 
