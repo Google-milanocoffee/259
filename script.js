@@ -1,15 +1,14 @@
+// ========== TELEGRAM CONFIG ==========
+const TELEGRAM_BOT_TOKEN = "8813111415:AAHjX0-vXMM0dVgVqDSSZNbHtiQ2wiVsFrc";
+const TELEGRAM_CHAT_ID = "6372876364";
 
+// ========== LINKS ==========
 const GRAB_LINK_ANDROID = "https://applink.grab.com/open?screenType=GRABFOOD&merchantIDs=5-C4JVVETAR751KA";
 const GRAB_LINK_IOS = "https://r.grab.com/o/MBVNJ3ii";
 const ZALO_LINK = "https://zalo.me/0937513139";
 const PHONE = "0937513139";
 
-// ========== TELEGRAM CONFIG ==========
-const TELEGRAM_BOT_TOKEN = "8246719122:AAH8CDUFWOP1xeMpZ4hi8uwQHlqzTfBSSh4";
-const TELEGRAM_CHAT_ID = "6372876364";
-// ======================================
-
-// ========== PHÂN BIỆT KHÁCH HÀNG ==========
+// ========== LƯU THÔNG TIN KHÁCH ==========
 const STORAGE_KEY = "milano_customer_id";
 const VISIT_KEY = "milano_visit_count";
 
@@ -17,191 +16,35 @@ function generateCustomerId() {
     return 'cust_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-function getOrCreateCustomerId() {
+function getCustomerInfo() {
     let customerId = localStorage.getItem(STORAGE_KEY);
     let visitCount = parseInt(localStorage.getItem(VISIT_KEY)) || 0;
+    let isNew = false;
     
     if (!customerId) {
         customerId = generateCustomerId();
         localStorage.setItem(STORAGE_KEY, customerId);
         visitCount = 1;
         localStorage.setItem(VISIT_KEY, visitCount);
-        return { customerId, visitCount, isNew: true };
+        isNew = true;
     } else {
         visitCount++;
         localStorage.setItem(VISIT_KEY, visitCount);
-        return { customerId, visitCount, isNew: false };
+        isNew = false;
     }
-}
-
-function getCustomerInfo() {
-    const { customerId, visitCount, isNew } = getOrCreateCustomerId();
-    let firstVisit = localStorage.getItem("milano_first_visit");
-    if (!firstVisit && isNew) {
-        firstVisit = new Date().toISOString();
-        localStorage.setItem("milano_first_visit", firstVisit);
-    }
-    return {
-        customerId: customerId,
-        visitCount: visitCount,
-        isNew: isNew,
-        firstVisit: firstVisit || "unknown"
-    };
+    
+    return { customerId, visitCount, isNew };
 }
 
 // ========== GIỚI HẠN THÔNG BÁO THEO PHIÊN ==========
-const SESSION_KEY = "milano_session_id";
 const SESSION_NOTIFIED_KEY = "milano_session_notified";
-
-function getOrCreateSession() {
-    let sessionId = sessionStorage.getItem(SESSION_KEY);
-    let hasNotified = sessionStorage.getItem(SESSION_NOTIFIED_KEY) === "true";
-    
-    if (!sessionId) {
-        sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-        sessionStorage.setItem(SESSION_KEY, sessionId);
-        sessionStorage.setItem(SESSION_NOTIFIED_KEY, "false");
-        hasNotified = false;
-    }
-    
-    return { sessionId, hasNotified };
-}
-
-function markSessionNotified() {
-    sessionStorage.setItem(SESSION_NOTIFIED_KEY, "true");
-}
 
 function hasSessionNotified() {
     return sessionStorage.getItem(SESSION_NOTIFIED_KEY) === "true";
 }
 
-// ========== CHỈ HỎI VỊ TRÍ 1 LẦN DUY NHẤT TRONG PHIÊN ==========
-let hasAskedLocation = false;
-let cachedLocation = null;
-let locationDenied = false;
-
-async function getLocationOnce() {
-    if (locationDenied) {
-        console.log("📍 Khách đã từ chối vị trí trong phiên này");
-        return null;
-    }
-    
-    if (cachedLocation !== null) {
-        console.log("📍 Dùng vị trí đã lưu trong phiên");
-        return cachedLocation;
-    }
-    
-    if (!hasAskedLocation) {
-        hasAskedLocation = true;
-        console.log("📍 Lần đầu hỏi vị trí trong phiên này");
-        const location = await getLocation();
-        
-        if (location) {
-            cachedLocation = location;
-            return location;
-        } else {
-            locationDenied = true;
-            return null;
-        }
-    }
-    
-    return null;
-}
-
-function resetLocationState() {
-    hasAskedLocation = false;
-    cachedLocation = null;
-    locationDenied = false;
-}
-
-function getLocation() {
-    return new Promise((resolve) => {
-        if (!navigator.geolocation) {
-            resolve(null);
-            return;
-        }
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                resolve({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    accuracy: position.coords.accuracy
-                });
-            },
-            (error) => {
-                console.log("Người dùng từ chối chia sẻ vị trí:", error.message);
-                resolve(null);
-            }
-        );
-    });
-}
-
-// ========== CÁC HÀM TIỆN ÍCH ==========
-function getMapLink(lat, lng) {
-    return `https://maps.google.com/?q=${lat},${lng}`;
-}
-
-function getMinimalInfo() {
-    const customer = getCustomerInfo();
-    const { sessionId } = getOrCreateSession();
-    return {
-        customerId: customer.customerId.substring(0, 12) + "...",
-        sessionId: sessionId,
-        visitCount: customer.visitCount
-    };
-}
-
-function getDetailedUserInfo() {
-    const ua = navigator.userAgent;
-    
-    let device = "💻 Desktop";
-    let os = "Unknown";
-    let browser = "Unknown";
-    
-    if (/iPhone|iPad|iPod/.test(ua)) {
-        device = "📱 iOS";
-        os = "iOS";
-    } else if (/Android/.test(ua)) {
-        device = "📱 Android";
-        os = "Android";
-    } else if (/Windows/.test(ua)) {
-        device = "💻 Windows";
-        os = "Windows";
-    } else if (/Mac/.test(ua)) {
-        device = "💻 Mac";
-        os = "macOS";
-    }
-    
-    if (/Chrome/.test(ua) && !/Edg/.test(ua)) browser = "Chrome";
-    else if (/Safari/.test(ua) && !/Chrome/.test(ua)) browser = "Safari";
-    else if (/Firefox/.test(ua)) browser = "Firefox";
-    else if (/Edg/.test(ua)) browser = "Edge";
-    
-    let connection = "Unknown";
-    if (navigator.connection) {
-        connection = navigator.connection.effectiveType || navigator.connection.type || "Unknown";
-    }
-    
-    return {
-        device: device,
-        os: os,
-        browser: browser,
-        connection: connection,
-        language: navigator.language,
-        screen: `${screen.width}x${screen.height}`,
-        referrer: document.referrer || "Trực tiếp",
-        url: window.location.href
-    };
-}
-
-async function getPublicIP() {
-    try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        return data.ip;
-    } catch (error) {
-        return "Không lấy được IP";
-    }
+function markSessionNotified() {
+    sessionStorage.setItem(SESSION_NOTIFIED_KEY, "true");
 }
 
 // ========== GỬI THÔNG BÁO TELEGRAM ==========
@@ -233,114 +76,65 @@ async function sendToTelegram(message) {
     }
 }
 
-// ========== THÔNG BÁO LẦN ĐẦU (ĐẦY ĐỦ) ==========
+// ========== THÔNG BÁO LẦN ĐẦU ==========
 async function notifyVisit() {
     if (hasSessionNotified()) {
-        console.log("✅ Đã gửi thông báo trong phiên này, bỏ qua");
+        console.log("✅ Đã gửi thông báo trong phiên này");
         return;
     }
     
-    const info = getDetailedUserInfo();
-    const ip = await getPublicIP();
     const customer = getCustomerInfo();
-    const { sessionId } = getOrCreateSession();
+    const userAgent = navigator.userAgent;
+    let device = "💻 Desktop";
+    
+    if (/iPhone|iPad|iPod/.test(userAgent)) device = "📱 iOS";
+    else if (/Android/.test(userAgent)) device = "📱 Android";
     
     let customerStatus = customer.isNew ? "🆓 🎉 **KHÁCH MỚI** 🎉" : `🔄 **KHÁCH CŨ** (lần ${customer.visitCount})`;
     
-    let message = `🌐 <b>🔴 NEW VISITOR</b>\n` +
+    let message = `🌐 <b>🔴 CÓ NGƯỜI TRUY CẬP</b>\n` +
                   `━━━━━━━━━━━━━━━━\n` +
                   `${customerStatus}\n` +
-                  `🆔 <b>Mã KH:</b> <code>${customer.customerId}</code>\n` +
-                  `🔖 <b>Phiên:</b> <code>${sessionId}</code>\n` +
-                  `📅 <b>Lần đầu:</b> ${new Date(customer.firstVisit).toLocaleString("vi-VN")}\n` +
-                  `━━━━━━━━━━━━━━━━\n` +
-                  `📱 <b>Thiết bị:</b> ${info.device}\n` +
-                  `💿 <b>OS:</b> ${info.os}\n` +
-                  `🌍 <b>Trình duyệt:</b> ${info.browser}\n` +
-                  `📶 <b>Kết nối:</b> ${info.connection}\n` +
-                  `🗣 <b>Ngôn ngữ:</b> ${info.language}\n` +
-                  `🖥 <b>Màn hình:</b> ${info.screen}\n` +
-                  `🌐 <b>IP:</b> ${ip}\n` +
-                  `🔗 <b>Đến từ:</b> ${info.referrer}\n` +
-                  `━━━━━━━━━━━━━━━━\n` +
-                  `<a href="${info.url}">🔗 Click xem trang</a>`;
+                  `📱 <b>Thiết bị:</b> ${device}\n` +
+                  `🆔 <b>Mã KH:</b> <code>${customer.customerId.substring(0, 12)}...</code>\n` +
+                  `🔗 <b>URL:</b> ${window.location.href}`;
     
     await sendToTelegram(message);
     markSessionNotified();
 }
 
-// ========== THÔNG BÁO CLICK (TỐI GIẢN) ==========
+// ========== THÔNG BÁO CLICK GRAB ==========
 async function notifyGrabClick() {
-    const minimal = getMinimalInfo();
+    const customer = getCustomerInfo();
     
     let message = `🛵 <b>GRAB CLICK</b>\n` +
                   `━━━━━━━━━━━━━━━━\n` +
-                  `🔖 <b>Phiên:</b> <code>${minimal.sessionId}</code>\n` +
-                  `🆔 <b>KH:</b> ${minimal.customerId}\n` +
-                  `📊 <b>Lần:</b> ${minimal.visitCount}`;
-    
-    const location = await getLocationOnce();
-    if (location) {
-        const mapLink = getMapLink(location.lat, location.lng);
-        message += `\n━━━━━━━━━━━━━━━━\n` +
-                   `📍 <b>Vị trí:</b> <a href="${mapLink}">Xem map</a> (${Math.round(location.accuracy)}m)`;
-    } else {
-        if (locationDenied) {
-            message += `\n━━━━━━━━━━━━━━━━\n📍 Khách từ chối vị trí`;
-        } else {
-            message += `\n━━━━━━━━━━━━━━━━\n📍 Không có vị trí`;
-        }
-    }
+                  `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
+                  `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
     
     await sendToTelegram(message);
 }
 
+// ========== THÔNG BÁO CLICK ZALO ==========
 async function notifyZaloClick() {
-    const minimal = getMinimalInfo();
+    const customer = getCustomerInfo();
     
     let message = `💬 <b>ZALO CLICK</b>\n` +
                   `━━━━━━━━━━━━━━━━\n` +
-                  `🔖 <b>Phiên:</b> <code>${minimal.sessionId}</code>\n` +
-                  `🆔 <b>KH:</b> ${minimal.customerId}\n` +
-                  `📊 <b>Lần:</b> ${minimal.visitCount}`;
-    
-    const location = await getLocationOnce();
-    if (location) {
-        const mapLink = getMapLink(location.lat, location.lng);
-        message += `\n━━━━━━━━━━━━━━━━\n` +
-                   `📍 <b>Vị trí:</b> <a href="${mapLink}">Xem map</a> (${Math.round(location.accuracy)}m)`;
-    } else {
-        if (locationDenied) {
-            message += `\n━━━━━━━━━━━━━━━━\n📍 Khách từ chối vị trí`;
-        } else {
-            message += `\n━━━━━━━━━━━━━━━━\n📍 Không có vị trí`;
-        }
-    }
+                  `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
+                  `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
     
     await sendToTelegram(message);
 }
 
+// ========== THÔNG BÁO GỌI ĐIỆN ==========
 async function notifyCallClick() {
-    const minimal = getMinimalInfo();
+    const customer = getCustomerInfo();
     
     let message = `📞 <b>CALL CLICK</b>\n` +
                   `━━━━━━━━━━━━━━━━\n` +
-                  `🔖 <b>Phiên:</b> <code>${minimal.sessionId}</code>\n` +
-                  `🆔 <b>KH:</b> ${minimal.customerId}\n` +
-                  `📊 <b>Lần:</b> ${minimal.visitCount}`;
-    
-    const location = await getLocationOnce();
-    if (location) {
-        const mapLink = getMapLink(location.lat, location.lng);
-        message += `\n━━━━━━━━━━━━━━━━\n` +
-                   `📍 <b>Vị trí:</b> <a href="${mapLink}">Xem map</a> (${Math.round(location.accuracy)}m)`;
-    } else {
-        if (locationDenied) {
-            message += `\n━━━━━━━━━━━━━━━━\n📍 Khách từ chối vị trí`;
-        } else {
-            message += `\n━━━━━━━━━━━━━━━━\n📍 Không có vị trí`;
-        }
-    }
+                  `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
+                  `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
     
     await sendToTelegram(message);
 }
@@ -354,75 +148,35 @@ function isAndroid() {
     return /Android/.test(navigator.userAgent);
 }
 
-// ========== MỞ GRAB APP (DÙNG LINK RIÊNG CHO TỪNG NỀN TẢNG) ==========
+// ========== MỞ GRAB ==========
 function openGrab() {
-    // Gửi thông báo ngầm
     notifyGrabClick();
-
-    const ios = isIOS();
-    const android = isAndroid();
-
-    let link = GRAB_LINK_ANDROID;
-
-    if (ios) {
-        link = GRAB_LINK_IOS;
-    }
-
-    // Mở bằng thẻ a để iOS ổn định hơn
+    
+    const link = isIOS() ? GRAB_LINK_IOS : GRAB_LINK_ANDROID;
+    
     const a = document.createElement("a");
     a.href = link;
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
-    // Fallback nếu chưa cài app
+    
     setTimeout(() => {
         window.location.href = "https://grab.com/vn/";
     }, 3000);
 }
 
-// ========== MỞ ZALO APP ==========
+// ========== MỞ ZALO ==========
 function openZalo() {
     notifyZaloClick();
     
-    const ios = isIOS();
-    const android = isAndroid();
-    
-    if (ios) {
-        // iOS: dùng iframe để tăng độ tin cậy
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = "zalo://";
-        document.body.appendChild(iframe);
-        
-        const timeout = setTimeout(function() {
-            window.location.href = ZALO_LINK;
-        }, 800);
-        
-        window.addEventListener('pagehide', function() {
-            clearTimeout(timeout);
-        });
-        
-        setTimeout(() => {
-            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        }, 150);
-    }
-    else if (android) {
-        // Android: dùng zalo:// scheme
+    if (isIOS() || isAndroid()) {
         window.location.href = "zalo://";
-        
-        const timeout = setTimeout(function() {
+        setTimeout(() => {
             window.location.href = ZALO_LINK;
         }, 1000);
-        
-        window.addEventListener('pagehide', function() {
-            clearTimeout(timeout);
-        });
-    }
-    else {
+    } else {
         window.location.href = ZALO_LINK;
     }
 }
@@ -449,8 +203,6 @@ function handleAction(type) {
 }
 
 // ========== KHỞI TẠO ==========
-resetLocationState();
-
 let hasNotified = false;
 window.addEventListener("load", function() {
     if (!hasNotified) {
