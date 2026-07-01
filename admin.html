@@ -7,13 +7,75 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <style>
-    /* (giữ nguyên style hiện tại) */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0f0f;color:#fff;font-family:'Montserrat',sans-serif;padding:20px}
+.admin-container{max-width:800px;margin:0 auto}
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;flex-wrap:wrap;gap:12px}
+.admin-header h1{font-size:24px;font-weight:800}
+.admin-header a{color:#00b14f;text-decoration:none;font-weight:600;font-size:14px}
+.admin-header a:hover{text-decoration:underline}
+
+.token-section{background:#1a1a1a;border:1px solid #2c2c2c;border-radius:16px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.token-section label{font-size:13px;font-weight:600;color:#c2c2c2;white-space:nowrap}
+.token-section input{flex:1;min-width:200px;padding:10px 14px;background:#0f0f0f;border:1px solid #2c2c2c;border-radius:10px;color:#fff;font-family:'Montserrat',sans-serif;font-size:13px;outline:none}
+.token-section input:focus{border-color:#00b14f}
+.token-status{font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px}
+.token-status.ok{background:rgba(0,177,79,0.15);color:#00b14f}
+.token-status.none{background:rgba(255,59,48,0.15);color:#ff3b30}
+.btn-token{padding:10px 20px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:#0A84FF;color:#fff;transition:opacity 0.2s}
+.btn-token:hover{opacity:0.8}
+.btn-token-danger{background:#ff3b30}
+
+.add-form{background:#1a1a1a;border:1px solid #2c2c2c;border-radius:20px;padding:24px;margin-bottom:30px}
+.add-form h2{font-size:18px;font-weight:700;margin-bottom:18px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:#c2c2c2;margin-bottom:6px}
+.form-group input,.form-group textarea{width:100%;padding:12px 14px;background:#0f0f0f;border:1px solid #2c2c2c;border-radius:12px;color:#fff;font-family:'Montserrat',sans-serif;font-size:14px;outline:none;transition:border 0.2s}
+.form-group input:focus,.form-group textarea:focus{border-color:#00b14f}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-group input[type="file"]{padding:10px;font-size:13px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.btn-submit{width:100%;padding:14px;background:#00b14f;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.2s}
+.btn-submit:hover{background:#009944}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed}
+
+.menu-list{display:flex;flex-direction:column;gap:14px}
+.menu-item{background:#1a1a1a;border:1px solid #2c2c2c;border-radius:16px;padding:16px;display:flex;gap:16px;align-items:center}
+.menu-item img{width:80px;height:80px;object-fit:cover;border-radius:12px;flex-shrink:0}
+.menu-item-info{flex:1;min-width:0}
+.menu-item-info h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.menu-item-info .price{font-size:14px;color:#00b14f;font-weight:600;margin-bottom:4px}
+.menu-item-info .desc{font-size:13px;color:#c2c2c2;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.menu-item-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.menu-item-actions button{padding:8px 14px;border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity 0.2s}
+.menu-item-actions button:hover{opacity:0.8}
+.btn-edit{background:#0A84FF;color:#fff}
+.btn-delete{background:#ff3b30;color:#fff}
+.btn-move{background:#2c2c2c;color:#fff}
+
+.modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-box{width:100%;max-width:480px;background:#1a1a1a;border-radius:24px;padding:24px;border:1px solid #2c2c2c}
+.modal-box h2{font-size:20px;font-weight:700;margin-bottom:18px}
+
+.empty-msg{text-align:center;color:#666;padding:40px 20px;font-size:14px}
+.upload-progress{display:none;text-align:center;padding:10px;color:#c2c2c2;font-size:13px}
+.upload-progress.show{display:block}
+
+.gallery-admin-list{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.gallery-admin-item{width:120px;height:213px;border-radius:12px;overflow:hidden;position:relative;background:#1a1a1a;border:1px solid #2c2c2c;flex-shrink:0}
+.gallery-admin-item img{width:100%;height:100%;object-fit:cover}
+.gallery-admin-item .gallery-del{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(255,59,48,0.9);color:#fff;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+.gallery-empty-msg{width:100%;text-align:center;color:#666;padding:30px 0;font-size:14px}
+hr{border:none;border-top:1px solid #2c2c2c;margin:40px 0}
+
+@media(max-width:500px){.form-row{grid-template-columns:1fr}.menu-item{flex-wrap:wrap}.menu-item-actions{flex-direction:row;width:100%}.menu-item-actions button{flex:1}}
 </style>
 </head>
 <body>
@@ -66,9 +128,9 @@
     <!-- DANH SÁCH MÓN -->
     <div class="menu-list" id="menuList"></div>
 
-    <hr style="border:none;border-top:1px solid #2c2c2c;margin:40px 0;" />
+    <hr />
 
-    <!-- ===== GALLERY ẢNH QUÁN ===== -->
+    <!-- GALLERY ẢNH QUÁN -->
     <div class="add-form">
         <h2>Hình ảnh quán (Gallery)</h2>
         <p style="color:#c2c2c2;font-size:13px;margin-bottom:16px;line-height:1.6;">
@@ -113,391 +175,288 @@
     </div>
 </div>
 
-<script src="firebase-config.js"></script>
 <script>
-    // ========== CẤU HÌNH GITHUB ==========
-    const GITHUB_OWNER = 'Google-milanocoffee';
-    const GITHUB_REPO = '259';
-    const GITHUB_BRANCH = 'main';
-    const GITHUB_PATH = 'anh';
-    const GITHUB_TOKEN_KEY = 'milano_github_token';
-    const RAW_BASE = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/' + GITHUB_BRANCH + '/' + GITHUB_PATH;
+// ========== FIREBASE ==========
+const firebaseConfig = {
+    apiKey: "AIzaSyCMaSv4Rak3P4Ve_OKQhcNPzrcizxzUvEI",
+    authDomain: "webmilano-aaf95.firebaseapp.com",
+    projectId: "webmilano-aaf95",
+    storageBucket: "webmilano-aaf95.firebasestorage.app",
+    messagingSenderId: "639661806336",
+    appId: "1:639661806336:web:e0e90756b9196dca07d9e5",
+    measurementId: "G-92YWMVG08R"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const menuRef = db.ref('menu');
+const GALLERY_REF_KEY = 'gallery';
 
-    // ========== FIREBASE ==========
-    const db = firebase.database();
-    const menuRef = db.ref('menu');
-    const GALLERY_REF_KEY = 'gallery';
+// ========== GITHUB ==========
+const GITHUB_OWNER = 'Google-milanocoffee';
+const GITHUB_REPO = '259';
+const GITHUB_BRANCH = 'main';
+const GITHUB_PATH = 'anh';
+const GITHUB_TOKEN_KEY = 'milano_github_token';
+const RAW_BASE = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/' + GITHUB_BRANCH + '/' + GITHUB_PATH;
 
-    // ========== TOKEN MANAGEMENT ==========
-    function getToken() {
-        return localStorage.getItem(GITHUB_TOKEN_KEY) || '';
+// ========== TOKEN ==========
+function getToken() { return localStorage.getItem(GITHUB_TOKEN_KEY) || ''; }
+function saveToken() {
+    const token = document.getElementById('githubTokenInput').value.trim();
+    if (!token) { alert('Vui lòng nhập GitHub Token'); return; }
+    localStorage.setItem(GITHUB_TOKEN_KEY, token);
+    updateTokenUI();
+    alert('Đã lưu token!');
+}
+function clearToken() {
+    if (!confirm('Xóa token đã lưu?')) return;
+    localStorage.removeItem(GITHUB_TOKEN_KEY);
+    document.getElementById('githubTokenInput').value = '';
+    updateTokenUI();
+}
+function updateTokenUI() {
+    const token = getToken();
+    const status = document.getElementById('tokenStatus');
+    const input = document.getElementById('githubTokenInput');
+    if (token) {
+        status.className = 'token-status ok';
+        status.textContent = 'Đã cài';
+        input.value = token;
+    } else {
+        status.className = 'token-status none';
+        status.textContent = 'Chưa cài';
     }
+}
 
-    function saveToken() {
-        const token = document.getElementById('githubTokenInput').value.trim();
-        if (!token) { alert('Vui lòng nhập GitHub Token'); return; }
-        localStorage.setItem(GITHUB_TOKEN_KEY, token);
-        updateTokenUI();
-        alert('Đã lưu token!');
-    }
-
-    function clearToken() {
-        if (!confirm('Xóa token đã lưu?')) return;
-        localStorage.removeItem(GITHUB_TOKEN_KEY);
-        document.getElementById('githubTokenInput').value = '';
-        updateTokenUI();
-    }
-
-    function updateTokenUI() {
+// ========== UPLOAD ==========
+function uploadToGitHub(file) {
+    return new Promise((resolve, reject) => {
         const token = getToken();
-        const status = document.getElementById('tokenStatus');
-        const input = document.getElementById('githubTokenInput');
-        if (token) {
-            status.className = 'token-status ok';
-            status.textContent = 'Đã cài';
-            input.value = token;
-        } else {
-            status.className = 'token-status none';
-            status.textContent = 'Chưa cài';
-        }
-    }
+        if (!token) { reject(new Error('Chưa có GitHub Token')); return; }
+        showProgress(true);
+        setButtonsDisabled(true);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Content = e.target.result.split(',')[1];
+            const fileName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filePath = GITHUB_PATH + '/' + fileName;
+            const apiUrl = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + filePath;
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: 'Upload image ' + fileName, content: base64Content, branch: GITHUB_BRANCH })
+            })
+            .then(response => response.json().then(data => {
+                if (response.ok) {
+                    showProgress(false); setButtonsDisabled(false);
+                    resolve(RAW_BASE + '/' + fileName);
+                } else {
+                    showProgress(false); setButtonsDisabled(false);
+                    reject(new Error(data.message || 'Lỗi upload'));
+                }
+            }))
+            .catch(error => { showProgress(false); setButtonsDisabled(false); reject(error); });
+        };
+        reader.onerror = function() { showProgress(false); setButtonsDisabled(false); reject(new Error('Đọc file thất bại')); };
+        reader.readAsDataURL(file);
+    });
+}
+function showProgress(show) {
+    document.getElementById('uploadProgress').className = 'upload-progress' + (show ? ' show' : '');
+}
+function setButtonsDisabled(disabled) {
+    document.getElementById('btnAdd').disabled = disabled;
+    document.getElementById('btnSaveEdit').disabled = disabled;
+    document.getElementById('btnAddGallery').disabled = disabled;
+}
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-    // ========== UPLOAD ẢNH LÊN GITHUB (trả về Promise) ==========
-    function uploadToGitHub(file) {
-        return new Promise((resolve, reject) => {
-            const token = getToken();
-            if (!token) {
-                reject(new Error('Chưa có GitHub Token'));
-                return;
-            }
+// ========== MENU DEFAULT ==========
+const DEFAULT_MENU = [
+    { id: 'item_1', name: 'Cà phê Milano', price: '15.000đ - 25.000đ', desc: 'Cà phê đậm vị, pha theo công thức gia truyền.', image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_2', name: 'Bạc xỉu', price: '15.000đ - 25.000đ', desc: 'Vị ngọt nhẹ, béo thơm, phù hợp cho người mới uống cà phê.', image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_3', name: 'Matcha', price: '20.000đ - 30.000đ', desc: 'Bột matcha nhập khẩu, xanh mát, thanh nhẹ.', image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_4', name: 'Trà', price: '15.000đ - 25.000đ', desc: 'Trà tươi nguyên lá, hương vị tự nhiên, giải nhiệt.', image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_5', name: 'Nước trái cây', price: '20.000đ - 35.000đ', desc: 'Ép tươi từ trái cây theo mùa, giàu vitamin.', image: 'https://images.unsplash.com/photo-1543364195-bfe6e4932397?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_6', name: 'Yaourt', price: '10.000đ - 20.000đ', desc: 'Yaourt tự làm, chua nhẹ, béo mịn.', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=500&auto=format&fit=crop' }
+];
 
-            showProgress(true);
-            setButtonsDisabled(true);
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Content = e.target.result.split(',')[1];
-                const fileName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                const filePath = GITHUB_PATH + '/' + fileName;
-                const apiUrl = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + filePath;
-
-                fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'token ' + token,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: 'Upload image ' + fileName,
-                        content: base64Content,
-                        branch: GITHUB_BRANCH
-                    })
-                })
-                .then(function(response) {
-                    return response.json().then(function(data) {
-                        if (response.ok) {
-                            const rawUrl = RAW_BASE + '/' + fileName;
-                            showProgress(false);
-                            setButtonsDisabled(false);
-                            resolve(rawUrl);
-                        } else {
-                            showProgress(false);
-                            setButtonsDisabled(false);
-                            if (response.status === 401) {
-                                reject(new Error('Token không hợp lệ! Vui lòng kiểm tra lại.'));
-                            } else if (response.status === 422) {
-                                reject(new Error('File đã tồn tại hoặc lỗi dữ liệu.'));
-                            } else {
-                                reject(new Error(data.message || 'Lỗi không xác định'));
-                            }
-                        }
-                    });
-                })
-                .catch(function(error) {
-                    showProgress(false);
-                    setButtonsDisabled(false);
-                    reject(error);
-                });
-            };
-            reader.onerror = function() {
-                showProgress(false);
-                setButtonsDisabled(false);
-                reject(new Error('Đọc file thất bại.'));
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    function showProgress(show) {
-        document.getElementById('uploadProgress').className = 'upload-progress' + (show ? ' show' : '');
-    }
-
-    function setButtonsDisabled(disabled) {
-        document.getElementById('btnAdd').disabled = disabled;
-        document.getElementById('btnSaveEdit').disabled = disabled;
-        document.getElementById('btnAddGallery').disabled = disabled;
-    }
-
-    // ========== HELPER ==========
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // ========== MENU REALTIME (Admin) ==========
-    let menuListener = null;
-
-    function renderAdminList() {
-        const container = document.getElementById('menuList');
-        if (!container) return;
-
-        // Xóa listener cũ
-        if (menuListener) {
-            menuRef.off('value', menuListener);
-            menuListener = null;
-        }
-
-        container.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải...</div>';
-
-        menuListener = function(snapshot) {
-            const menu = snapshot.val();
-            if (menu && menu.length > 0) {
-                container.innerHTML = menu.map((item, index) => `
-                    <div class="menu-item">
-                        <img src="${item.image}" alt="${escapeHtml(item.name)}" onerror="this.src='https://via.placeholder.com/80?text=No+Image'" />
-                        <div class="menu-item-info">
-                            <h3>${escapeHtml(item.name)}</h3>
-                            <div class="price">${escapeHtml(item.price)}</div>
-                            <div class="desc">${escapeHtml(item.desc)}</div>
-                        </div>
-                        <div class="menu-item-actions">
-                            <button class="btn-move" onclick="moveItem(${index}, -1)" ${index === 0 ? 'disabled style="opacity:0.4"' : ''}>&uarr;</button>
-                            <button class="btn-move" onclick="moveItem(${index}, 1)" ${index === menu.length - 1 ? 'disabled style="opacity:0.4"' : ''}>&darr;</button>
-                            <button class="btn-edit" onclick="openEdit('${item.id}')">Sửa</button>
-                            <button class="btn-delete" onclick="deleteItem('${item.id}')">Xóa</button>
-                        </div>
+// ========== RENDER ADMIN MENU ==========
+function renderAdminList() {
+    const container = document.getElementById('menuList');
+    container.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải...</div>';
+    
+    menuRef.on('value', function(snapshot) {
+        const menu = snapshot.val();
+        if (menu && menu.length > 0) {
+            container.innerHTML = menu.map((item, index) => `
+                <div class="menu-item">
+                    <img src="${item.image}" alt="${escapeHtml(item.name)}" onerror="this.src='https://via.placeholder.com/80?text=No+Image'" />
+                    <div class="menu-item-info">
+                        <h3>${escapeHtml(item.name)}</h3>
+                        <div class="price">${escapeHtml(item.price)}</div>
+                        <div class="desc">${escapeHtml(item.desc)}</div>
                     </div>
-                `).join('');
-            } else {
-                container.innerHTML = '<div class="empty-msg">Chưa có món nào. Thêm món mới bên trên.</div>';
-            }
-        };
-        menuRef.on('value', menuListener);
-    }
-
-    // ========== THÊM MÓN ==========
-    function addMenuItem() {
-        const name = document.getElementById('inputName').value.trim();
-        const price = document.getElementById('inputPrice').value.trim();
-        const desc = document.getElementById('inputDesc').value.trim();
-        const fileInput = document.getElementById('inputImage');
-        const file = fileInput.files[0];
-
-        if (!name) { alert('Vui lòng nhập tên món'); return; }
-        if (!price) { alert('Vui lòng nhập giá'); return; }
-
-        const newItem = {
-            id: 'item_' + Date.now(),
-            name: name,
-            price: price,
-            desc: desc || '',
-            image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop'
-        };
-
-        function saveNewItem(imageUrl) {
-            if (imageUrl) newItem.image = imageUrl;
-            menuRef.once('value').then(snapshot => {
-                const menu = snapshot.val() || [];
-                menu.push(newItem);
-                menuRef.set(menu);
-                clearForm();
-            });
-        }
-
-        if (file) {
-            uploadToGitHub(file)
-                .then(rawUrl => saveNewItem(rawUrl))
-                .catch(error => alert('Upload ảnh thất bại: ' + error.message));
-        } else {
-            saveNewItem(null);
-        }
-    }
-
-    function clearForm() {
-        document.getElementById('inputName').value = '';
-        document.getElementById('inputPrice').value = '';
-        document.getElementById('inputDesc').value = '';
-        document.getElementById('inputImage').value = '';
-    }
-
-    // ========== SỬA MÓN ==========
-    let currentEditId = null;
-
-    function openEdit(id) {
-        currentEditId = id;
-        menuRef.once('value').then(snapshot => {
-            const menu = snapshot.val() || [];
-            const item = menu.find(i => i.id === id);
-            if (!item) return;
-            document.getElementById('editName').value = item.name;
-            document.getElementById('editPrice').value = item.price;
-            document.getElementById('editDesc').value = item.desc;
-            document.getElementById('editImage').value = '';
-            document.getElementById('editModal').classList.add('show');
-        });
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.remove('show');
-        currentEditId = null;
-    }
-
-    function saveEdit() {
-        if (!currentEditId) return;
-
-        const name = document.getElementById('editName').value.trim();
-        const price = document.getElementById('editPrice').value.trim();
-        const desc = document.getElementById('editDesc').value.trim();
-        const fileInput = document.getElementById('editImage');
-        const file = fileInput.files[0];
-
-        if (!name) { alert('Vui lòng nhập tên món'); return; }
-        if (!price) { alert('Vui lòng nhập giá'); return; }
-
-        function updateItem(imageUrl) {
-            menuRef.once('value').then(snapshot => {
-                const menu = snapshot.val() || [];
-                const index = menu.findIndex(i => i.id === currentEditId);
-                if (index === -1) return;
-                menu[index].name = name;
-                menu[index].price = price;
-                menu[index].desc = desc || '';
-                if (imageUrl) menu[index].image = imageUrl;
-                menuRef.set(menu);
-                closeEditModal();
-            });
-        }
-
-        if (file) {
-            uploadToGitHub(file)
-                .then(rawUrl => updateItem(rawUrl))
-                .catch(error => alert('Upload ảnh thất bại: ' + error.message));
-        } else {
-            updateItem(null);
-        }
-    }
-
-    // ========== XÓA MÓN ==========
-    function deleteItem(id) {
-        if (!confirm('Xóa món này?')) return;
-        menuRef.once('value').then(snapshot => {
-            const menu = snapshot.val() || [];
-            const newMenu = menu.filter(i => i.id !== id);
-            menuRef.set(newMenu);
-        });
-    }
-
-    // ========== DI CHUYỂN ==========
-    function moveItem(index, direction) {
-        menuRef.once('value').then(snapshot => {
-            const menu = snapshot.val() || [];
-            const target = index + direction;
-            if (target < 0 || target >= menu.length) return;
-            [menu[index], menu[target]] = [menu[target], menu[index]];
-            menuRef.set(menu);
-        });
-    }
-
-    // ========== GALLERY REALTIME (Admin) ==========
-    let galleryListener = null;
-
-    function renderGalleryAdmin() {
-        const container = document.getElementById('galleryAdminList');
-        if (!container) return;
-
-        if (galleryListener) {
-            const galleryRef = db.ref(GALLERY_REF_KEY);
-            galleryRef.off('value', galleryListener);
-            galleryListener = null;
-        }
-
-        const galleryRef = db.ref(GALLERY_REF_KEY);
-        galleryListener = function(snapshot) {
-            const images = snapshot.val() || [];
-            if (images.length === 0) {
-                container.innerHTML = '<div class="gallery-empty-msg">Chưa có ảnh nào. Thêm ảnh bên trên.</div>';
-                return;
-            }
-            container.innerHTML = images.map((url, index) => `
-                <div class="gallery-admin-item">
-                    <img src="${url}" alt="Ảnh quán" onerror="this.parentElement.style.display='none'" />
-                    <button class="gallery-del" onclick="deleteGalleryImage(${index})" title="Xóa ảnh">&times;</button>
+                    <div class="menu-item-actions">
+                        <button class="btn-move" onclick="moveItem(${index}, -1)" ${index === 0 ? 'disabled style="opacity:0.4"' : ''}>&uarr;</button>
+                        <button class="btn-move" onclick="moveItem(${index}, 1)" ${index === menu.length - 1 ? 'disabled style="opacity:0.4"' : ''}>&darr;</button>
+                        <button class="btn-edit" onclick="openEdit('${item.id}')">Sửa</button>
+                        <button class="btn-delete" onclick="deleteItem('${item.id}')">Xóa</button>
+                    </div>
                 </div>
             `).join('');
-        };
-        galleryRef.on('value', galleryListener);
-    }
+        } else {
+            // Nếu chưa có dữ liệu, tạo mới
+            menuRef.set(DEFAULT_MENU);
+            container.innerHTML = '<div class="empty-msg">Chưa có món nào. Thêm món mới bên trên.</div>';
+        }
+    });
+}
 
-    // ========== THÊM NHIỀU ẢNH GALLERY ==========
-    function addGalleryImage() {
-        const fileInput = document.getElementById('galleryImageInput');
-        const files = fileInput.files;
-        if (!files || files.length === 0) {
-            alert('Vui lòng chọn ít nhất một ảnh!');
+// ========== CRUD MENU ==========
+function addMenuItem() {
+    const name = document.getElementById('inputName').value.trim();
+    const price = document.getElementById('inputPrice').value.trim();
+    const desc = document.getElementById('inputDesc').value.trim();
+    const file = document.getElementById('inputImage').files[0];
+    if (!name) { alert('Vui lòng nhập tên món'); return; }
+    if (!price) { alert('Vui lòng nhập giá'); return; }
+
+    const newItem = { id: 'item_' + Date.now(), name, price, desc: desc || '', image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop' };
+    
+    function saveNewItem(imageUrl) {
+        if (imageUrl) newItem.image = imageUrl;
+        menuRef.once('value').then(snapshot => {
+            const menu = snapshot.val() || [];
+            menu.push(newItem);
+            menuRef.set(menu);
+            document.getElementById('inputName').value = '';
+            document.getElementById('inputPrice').value = '';
+            document.getElementById('inputDesc').value = '';
+            document.getElementById('inputImage').value = '';
+        });
+    }
+    if (file) { uploadToGitHub(file).then(rawUrl => saveNewItem(rawUrl)).catch(error => alert('Upload ảnh thất bại: ' + error.message)); }
+    else { saveNewItem(null); }
+}
+
+let currentEditId = null;
+function openEdit(id) {
+    currentEditId = id;
+    menuRef.once('value').then(snapshot => {
+        const menu = snapshot.val() || [];
+        const item = menu.find(i => i.id === id);
+        if (!item) return;
+        document.getElementById('editName').value = item.name;
+        document.getElementById('editPrice').value = item.price;
+        document.getElementById('editDesc').value = item.desc;
+        document.getElementById('editImage').value = '';
+        document.getElementById('editModal').classList.add('show');
+    });
+}
+function closeEditModal() { document.getElementById('editModal').classList.remove('show'); currentEditId = null; }
+function saveEdit() {
+    if (!currentEditId) return;
+    const name = document.getElementById('editName').value.trim();
+    const price = document.getElementById('editPrice').value.trim();
+    const desc = document.getElementById('editDesc').value.trim();
+    const file = document.getElementById('editImage').files[0];
+    if (!name) { alert('Vui lòng nhập tên món'); return; }
+    if (!price) { alert('Vui lòng nhập giá'); return; }
+    function updateItem(imageUrl) {
+        menuRef.once('value').then(snapshot => {
+            const menu = snapshot.val() || [];
+            const index = menu.findIndex(i => i.id === currentEditId);
+            if (index === -1) return;
+            menu[index].name = name; menu[index].price = price; menu[index].desc = desc || '';
+            if (imageUrl) menu[index].image = imageUrl;
+            menuRef.set(menu);
+            closeEditModal();
+        });
+    }
+    if (file) { uploadToGitHub(file).then(rawUrl => updateItem(rawUrl)).catch(error => alert('Upload ảnh thất bại: ' + error.message)); }
+    else { updateItem(null); }
+}
+function deleteItem(id) {
+    if (!confirm('Xóa món này?')) return;
+    menuRef.once('value').then(snapshot => {
+        const menu = snapshot.val() || [];
+        menuRef.set(menu.filter(i => i.id !== id));
+    });
+}
+function moveItem(index, direction) {
+    menuRef.once('value').then(snapshot => {
+        const menu = snapshot.val() || [];
+        const target = index + direction;
+        if (target < 0 || target >= menu.length) return;
+        [menu[index], menu[target]] = [menu[target], menu[index]];
+        menuRef.set(menu);
+    });
+}
+
+// ========== GALLERY ADMIN ==========
+function renderGalleryAdmin() {
+    const container = document.getElementById('galleryAdminList');
+    const galleryRef = db.ref(GALLERY_REF_KEY);
+    galleryRef.on('value', function(snapshot) {
+        const images = snapshot.val() || [];
+        if (images.length === 0) {
+            container.innerHTML = '<div class="gallery-empty-msg">Chưa có ảnh nào. Thêm ảnh bên trên.</div>';
             return;
         }
-
-        const token = getToken();
-        if (!token) {
-            alert('Vui lòng nhập GitHub Token trước khi upload ảnh!');
-            return;
-        }
-
-        const btn = document.getElementById('btnAddGallery');
-        btn.disabled = true;
-        btn.textContent = 'Đang upload...';
-
-        // Upload từng file
-        const uploadPromises = Array.from(files).map(file => uploadToGitHub(file));
-
-        Promise.all(uploadPromises)
-            .then(urls => {
-                // Lưu tất cả vào Firebase
-                const galleryRef = db.ref(GALLERY_REF_KEY);
-                galleryRef.once('value').then(snapshot => {
-                    const images = snapshot.val() || [];
-                    images.push(...urls);
-                    galleryRef.set(images);
-                    fileInput.value = '';
-                    btn.disabled = false;
-                    btn.textContent = '+ Thêm ảnh';
-                    alert('Thêm ' + urls.length + ' ảnh thành công!');
-                });
-            })
-            .catch(error => {
-                alert('Có lỗi khi upload ảnh: ' + error.message);
-                btn.disabled = false;
-                btn.textContent = '+ Thêm ảnh';
-            });
-    }
-
-    // ========== XÓA ẢNH GALLERY ==========
-    function deleteGalleryImage(index) {
-        if (!confirm('Xóa ảnh này?')) return;
+        container.innerHTML = images.map((url, index) => `
+            <div class="gallery-admin-item">
+                <img src="${url}" alt="Ảnh quán" onerror="this.parentElement.style.display='none'" />
+                <button class="gallery-del" onclick="deleteGalleryImage(${index})" title="Xóa ảnh">&times;</button>
+            </div>
+        `).join('');
+    });
+}
+function addGalleryImage() {
+    const files = document.getElementById('galleryImageInput').files;
+    if (!files || files.length === 0) { alert('Vui lòng chọn ít nhất một ảnh!'); return; }
+    const token = getToken();
+    if (!token) { alert('Vui lòng nhập GitHub Token trước khi upload ảnh!'); return; }
+    const btn = document.getElementById('btnAddGallery');
+    btn.disabled = true;
+    btn.textContent = 'Đang upload...';
+    const uploadPromises = Array.from(files).map(file => uploadToGitHub(file));
+    Promise.all(uploadPromises).then(urls => {
         const galleryRef = db.ref(GALLERY_REF_KEY);
         galleryRef.once('value').then(snapshot => {
             const images = snapshot.val() || [];
-            images.splice(index, 1);
+            images.push(...urls);
             galleryRef.set(images);
+            document.getElementById('galleryImageInput').value = '';
+            btn.disabled = false;
+            btn.textContent = '+ Thêm ảnh';
+            alert('Thêm ' + urls.length + ' ảnh thành công!');
         });
-    }
+    }).catch(error => {
+        alert('Có lỗi khi upload ảnh: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = '+ Thêm ảnh';
+    });
+}
+function deleteGalleryImage(index) {
+    if (!confirm('Xóa ảnh này?')) return;
+    const galleryRef = db.ref(GALLERY_REF_KEY);
+    galleryRef.once('value').then(snapshot => {
+        const images = snapshot.val() || [];
+        images.splice(index, 1);
+        galleryRef.set(images);
+    });
+}
 
-    // ========== KHỞI TẠO ==========
-    updateTokenUI();
-    renderAdminList();
-    renderGalleryAdmin();
+// ========== KHỞI TẠO ==========
+updateTokenUI();
+renderAdminList();
+renderGalleryAdmin();
 </script>
 
 </body>
