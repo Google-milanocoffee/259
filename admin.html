@@ -9,9 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
-<!-- Firebase SDK (chỉ Database, không cần Storage) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <style>
     body {
         background: #0f0f0f;
@@ -45,7 +46,6 @@
         text-decoration: underline;
     }
 
-    /* GitHub Token */
     .token-section {
         background: #1a1a1a;
         border: 1px solid #2c2c2c;
@@ -110,7 +110,6 @@
         background: #ff3b30;
     }
 
-    /* Form thêm món */
     .add-form {
         background: #1a1a1a;
         border: 1px solid #2c2c2c;
@@ -158,6 +157,12 @@
         padding: 10px;
         font-size: 13px;
     }
+    .form-group small {
+        color: #666;
+        font-size: 11px;
+        display: block;
+        margin-top: 4px;
+    }
     .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -183,7 +188,6 @@
         cursor: not-allowed;
     }
 
-    /* Danh sách món */
     .menu-list {
         display: flex;
         flex-direction: column;
@@ -197,6 +201,22 @@
         display: flex;
         gap: 16px;
         align-items: center;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        transition: border-color 0.2s, opacity 0.2s, transform 0.2s;
+    }
+    .menu-item.dragging {
+        opacity: 0.4;
+        transform: scale(0.97);
+        border-color: #00b14f;
+        box-shadow: 0 0 24px rgba(0,177,79,0.15);
+    }
+    .menu-item.drag-over-top {
+        border-top: 3px solid #00b14f;
+    }
+    .menu-item.drag-over-bottom {
+        border-bottom: 3px solid #00b14f;
     }
     .menu-item img {
         width: 80px;
@@ -204,10 +224,12 @@
         object-fit: cover;
         border-radius: 12px;
         flex-shrink: 0;
+        pointer-events: none;
     }
     .menu-item-info {
         flex: 1;
         min-width: 0;
+        pointer-events: none;
     }
     .menu-item-info h3 {
         font-size: 15px;
@@ -255,12 +277,23 @@
         background: #ff3b30;
         color: #fff;
     }
-    .btn-move {
-        background: #2c2c2c;
-        color: #fff;
+    .admin-drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        flex-shrink: 0;
+        color: #666;
+        font-size: 20px;
+        cursor: grab;
+        opacity: 0.4;
+        transition: opacity 0.2s;
+        pointer-events: none;
+    }
+    .menu-item:hover .admin-drag-handle {
+        opacity: 1;
     }
 
-    /* Modal sửa */
     .modal {
         display: none;
         position: fixed;
@@ -295,7 +328,6 @@
         font-size: 14px;
     }
 
-    /* Upload progress */
     .upload-progress {
         display: none;
         text-align: center;
@@ -307,7 +339,6 @@
         display: block;
     }
 
-    /* Gallery admin */
     .gallery-admin-list {
         display: flex;
         flex-wrap: wrap;
@@ -323,11 +354,28 @@
         background: #1a1a1a;
         border: 1px solid #2c2c2c;
         flex-shrink: 0;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        transition: border-color 0.2s, opacity 0.2s, transform 0.2s;
+    }
+    .gallery-admin-item.dragging {
+        opacity: 0.4;
+        transform: scale(0.95);
+        border-color: #0A84FF;
+        box-shadow: 0 0 20px rgba(10,132,255,0.15);
+    }
+    .gallery-admin-item.drag-over-left {
+        border-left: 3px solid #0A84FF;
+    }
+    .gallery-admin-item.drag-over-right {
+        border-right: 3px solid #0A84FF;
     }
     .gallery-admin-item img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        pointer-events: none;
     }
     .gallery-admin-item .gallery-del {
         position: absolute;
@@ -345,6 +393,7 @@
         align-items: center;
         justify-content: center;
         font-weight: 700;
+        z-index: 2;
     }
     .gallery-empty-msg {
         width: 100%;
@@ -392,7 +441,7 @@
     </div>
 
     <!-- UPLOAD PROGRESS -->
-    <div class="upload-progress" id="uploadProgress">Đang upload ảnh lên GitHub...</div>
+    <div class="upload-progress" id="uploadProgress">Đang nén & upload ảnh lên GitHub...</div>
 
     <!-- FORM THÊM MÓN -->
     <div class="add-form">
@@ -412,8 +461,9 @@
             <textarea id="inputDesc" placeholder="Mô tả ngắn về món..."></textarea>
         </div>
         <div class="form-group">
-            <label>Ảnh</label>
+            <label>Ảnh (tối ưu: 400x400, &lt; 200KB)</label>
             <input type="file" id="inputImage" accept="image/*" />
+            <small>📸 Ảnh sẽ được nén tự động khi upload</small>
         </div>
         <button class="btn-submit" id="btnAdd" onclick="addMenuItem()">+ Thêm món</button>
     </div>
@@ -423,15 +473,16 @@
 
     <hr style="border:none;border-top:1px solid #2c2c2c;margin:40px 0;" />
 
-    <!-- ===== GALLERY ẢNH QUÁN ===== -->
+    <!-- GALLERY ẢNH QUÁN -->
     <div class="add-form">
         <h2>Hình ảnh quán (Gallery)</h2>
         <p style="color:#c2c2c2;font-size:13px;margin-bottom:16px;line-height:1.6;">
-            Ảnh sẽ hiển thị dạng cuộn ngang kiểu TikTok trên trang chủ. Tỷ lệ đẹp: 9:16 (dọc).
+            Ảnh sẽ hiển thị dạng cuộn ngang kiểu TikTok. Tỷ lệ đẹp: 9:16 (dọc).
         </p>
         <div class="form-group">
-            <label>Thêm ảnh mới</label>
+            <label>Thêm ảnh mới (tối ưu: 600x800, &lt; 200KB)</label>
             <input type="file" id="galleryImageInput" accept="image/*" />
+            <small>📸 Ảnh sẽ được nén tự động khi upload</small>
         </div>
         <button class="btn-submit" id="btnAddGallery" onclick="addGalleryImage()">+ Thêm ảnh</button>
     </div>
@@ -459,6 +510,7 @@
         <div class="form-group">
             <label>Thay ảnh (nếu muốn đổi)</label>
             <input type="file" id="editImage" accept="image/*" />
+            <small>📸 Ảnh sẽ được nén tự động</small>
         </div>
         <div style="display:flex; gap:12px;">
             <button class="btn-submit" id="btnSaveEdit" onclick="saveEdit()" style="flex:1;">Lưu</button>
@@ -476,6 +528,48 @@
     const GITHUB_PATH = 'anh';
     const GITHUB_TOKEN_KEY = 'milano_github_token';
     const RAW_BASE = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/' + GITHUB_BRANCH + '/' + GITHUB_PATH;
+
+    // ========== NÉN ẢNH ==========
+    function compressImage(file, maxWidth = 600, maxHeight = 800, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > maxWidth) {
+                        height = height * (maxWidth / width);
+                        width = maxWidth;
+                    }
+                    if (height > maxHeight) {
+                        width = width * (maxHeight / height);
+                        height = maxHeight;
+                    }
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(width);
+                    canvas.height = Math.round(height);
+                    const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    canvas.toBlob(function(blob) {
+                        const newFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { 
+                            type: 'image/jpeg' 
+                        });
+                        resolve(newFile);
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = reject;
+            };
+            reader.onerror = reject;
+        });
+    }
 
     // ========== TOKEN MANAGEMENT ==========
     function getToken() {
@@ -509,6 +603,84 @@
             status.className = 'token-status none';
             status.textContent = 'Chưa cài';
         }
+    }
+
+    // ========== UPLOAD ẢNH LÊN GITHUB (CÓ NÉN) ==========
+    function showProgress(show) {
+        document.getElementById('uploadProgress').className = 'upload-progress' + (show ? ' show' : '');
+    }
+
+    function setButtonsDisabled(disabled) {
+        document.getElementById('btnAdd').disabled = disabled;
+        document.getElementById('btnSaveEdit').disabled = disabled;
+        document.getElementById('btnAddGallery').disabled = disabled;
+    }
+
+    function uploadToGitHub(file, callback) {
+        const token = getToken();
+        if (!token) {
+            alert('Vui lòng nhập GitHub Token trước!');
+            return;
+        }
+
+        showProgress(true);
+        setButtonsDisabled(true);
+
+        // Nén ảnh trước khi upload
+        const isGallery = file.name.includes('gallery') || document.getElementById('galleryImageInput')?.files?.[0] === file;
+        const maxWidth = isGallery ? 600 : 400;
+        const maxHeight = isGallery ? 800 : 400;
+        
+        compressImage(file, maxWidth, maxHeight, 0.7).then(function(compressedFile) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Content = e.target.result.split(',')[1];
+                const fileName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '.jpg');
+                const filePath = GITHUB_PATH + '/' + fileName;
+                const apiUrl = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + filePath;
+
+                fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + token,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'Upload image ' + fileName,
+                        content: base64Content,
+                        branch: GITHUB_BRANCH
+                    })
+                })
+                .then(function(response) {
+                    return response.json().then(function(data) {
+                        if (response.ok) {
+                            const rawUrl = RAW_BASE + '/' + fileName;
+                            showProgress(false);
+                            setButtonsDisabled(false);
+                            callback(rawUrl);
+                        } else {
+                            showProgress(false);
+                            setButtonsDisabled(false);
+                            if (response.status === 401) {
+                                alert('Token không hợp lệ!');
+                            } else {
+                                alert('Lỗi upload: ' + (data.message || 'Không xác định'));
+                            }
+                        }
+                    });
+                })
+                .catch(function(error) {
+                    showProgress(false);
+                    setButtonsDisabled(false);
+                    alert('Lỗi kết nối: ' + error.message);
+                });
+            };
+            reader.readAsDataURL(compressedFile);
+        }).catch(function(error) {
+            showProgress(false);
+            setButtonsDisabled(false);
+            alert('Lỗi nén ảnh: ' + error.message);
+        });
     }
 
     // ========== DỮ LIỆU ==========
@@ -575,6 +747,8 @@
 
     function saveMenuToFirebase(menu, callback) {
         menuRef.set(menu).then(() => {
+            // Cập nhật version
+            versionRef.update({ menu: Date.now() });
             if (callback) callback();
         });
     }
@@ -590,8 +764,9 @@
                 return;
             }
 
-            container.innerHTML = menu.map((item, index) => `
-                <div class="menu-item">
+            container.innerHTML = menu.map((item) => `
+                <div class="menu-item" draggable="true" data-id="${escapeHtml(item.id)}">
+                    <div class="admin-drag-handle">⠿</div>
                     <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/80?text=No+Image'" />
                     <div class="menu-item-info">
                         <h3>${escapeHtml(item.name)}</h3>
@@ -599,91 +774,214 @@
                         <div class="desc">${escapeHtml(item.desc)}</div>
                     </div>
                     <div class="menu-item-actions">
-                        <button class="btn-move" onclick="moveItem(${index}, -1)" ${index === 0 ? 'disabled style="opacity:0.4"' : ''}>&uarr;</button>
-                        <button class="btn-move" onclick="moveItem(${index}, 1)" ${index === menu.length - 1 ? 'disabled style="opacity:0.4"' : ''}>&darr;</button>
                         <button class="btn-edit" onclick="openEdit('${item.id}')">Sửa</button>
                         <button class="btn-delete" onclick="deleteItem('${item.id}')">Xóa</button>
                     </div>
                 </div>
             `).join('');
+
+            // Khởi tạo drag & drop cho menu
+            initMenuDragDrop();
         });
     }
 
-    // ========== UPLOAD ẢNH LÊN GITHUB ==========
-    function showProgress(show) {
-        document.getElementById('uploadProgress').className = 'upload-progress' + (show ? ' show' : '');
-    }
+    // ========== DRAG & DROP MENU ==========
+    function initMenuDragDrop() {
+        const container = document.getElementById('menuList');
+        if (!container) return;
 
-    function setButtonsDisabled(disabled) {
-        document.getElementById('btnAdd').disabled = disabled;
-        document.getElementById('btnSaveEdit').disabled = disabled;
-    }
+        let dragItem = null;
 
-    function uploadToGitHub(file, callback) {
-        const token = getToken();
-        if (!token) {
-            alert('Vui lòng nhập GitHub Token trước!');
-            return;
-        }
+        container.addEventListener('dragstart', function(e) {
+            const item = e.target.closest('.menu-item');
+            if (!item) return;
+            dragItem = item;
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', item.getAttribute('data-id') || '');
+        });
 
-        showProgress(true);
-        setButtonsDisabled(true);
-
-        // Đọc file thành base64
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Content = e.target.result.split(',')[1]; // Bỏ phần "data:image/...;base64,"
-            const fileName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-            const filePath = GITHUB_PATH + '/' + fileName;
-            const apiUrl = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + filePath;
-
-            fetch(apiUrl, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'token ' + token,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: 'Upload image ' + fileName,
-                    content: base64Content,
-                    branch: GITHUB_BRANCH
-                })
-            })
-            .then(function(response) {
-                return response.json().then(function(data) {
-                    if (response.ok) {
-                        // Thành công - lấy raw URL
-                        const rawUrl = RAW_BASE + '/' + fileName;
-                        showProgress(false);
-                        setButtonsDisabled(false);
-                        callback(rawUrl);
-                    } else {
-                        showProgress(false);
-                        setButtonsDisabled(false);
-                        if (response.status === 401) {
-                            alert('Token không hợp lệ! Vui lòng kiểm tra lại GitHub Token.');
-                        } else if (response.status === 422) {
-                            alert('File đã tồn tại hoặc lỗi dữ liệu. Vui lòng thử lại với tên file khác.');
-                        } else {
-                            alert('Lỗi upload GitHub: ' + (data.message || 'Không xác định'));
-                        }
-                        console.error('GitHub API error:', data);
-                    }
-                });
-            })
-            .catch(function(error) {
-                showProgress(false);
-                setButtonsDisabled(false);
-                alert('Lỗi kết nối GitHub: ' + error.message);
-                console.error(error);
+        container.addEventListener('dragend', function(e) {
+            const item = e.target.closest('.menu-item');
+            if (item) item.classList.remove('dragging');
+            container.querySelectorAll('.menu-item').forEach(function(el) {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
             });
-        };
-        reader.onerror = function() {
-            showProgress(false);
-            setButtonsDisabled(false);
-            alert('Đọc file thất bại. Vui lòng thử lại.');
-        };
-        reader.readAsDataURL(file);
+            dragItem = null;
+        });
+
+        container.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.target.closest('.menu-item');
+            if (!target || target === dragItem) return;
+
+            container.querySelectorAll('.menu-item').forEach(function(el) {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+
+            const rect = target.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            target.classList.add(e.clientY < midY ? 'drag-over-top' : 'drag-over-bottom');
+        });
+
+        container.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const target = e.target.closest('.menu-item');
+            if (!target || !dragItem || target === dragItem) {
+                container.querySelectorAll('.menu-item').forEach(function(el) {
+                    el.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+                return;
+            }
+
+            const rect = target.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            const insertBefore = e.clientY < midY;
+
+            const allItems = Array.from(container.querySelectorAll('.menu-item'));
+            const ids = allItems.map(function(el) { return el.getAttribute('data-id'); });
+            const dragId = dragItem.getAttribute('data-id');
+            const targetId = target.getAttribute('data-id');
+            const dragIdx = ids.indexOf(dragId);
+            const targetIdx = ids.indexOf(targetId);
+            if (dragIdx === -1 || targetIdx === -1) return;
+
+            ids.splice(dragIdx, 1);
+            const newTargetIdx = ids.indexOf(targetId);
+            ids.splice(insertBefore ? newTargetIdx : newTargetIdx + 1, 0, dragId);
+
+            getMenuFromFirebase(function(menu) {
+                const menuMap = {};
+                menu.forEach(function(item) { menuMap[item.id] = item; });
+                const reordered = [];
+                ids.forEach(function(id) {
+                    if (menuMap[id]) { reordered.push(menuMap[id]); delete menuMap[id]; }
+                });
+                Object.keys(menuMap).forEach(function(id) { reordered.push(menuMap[id]); });
+                saveMenuToFirebase(reordered, function() { renderAdminList(); });
+            });
+
+            container.querySelectorAll('.menu-item').forEach(function(el) {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+            dragItem = null;
+        });
+
+        // Touch support cho mobile - kéo từ bất kỳ đâu trên item (trừ nút)
+        let touchDragItem = null;
+        let touchClone = null;
+        let touchOffsetY = 0;
+        let touchStartTime = 0;
+
+        container.addEventListener('touchstart', function(e) {
+            const item = e.target.closest('.menu-item');
+            if (!item) return;
+            // Không kéo khi chạm vào nút
+            if (e.target.closest('.menu-item-actions') || e.target.closest('button')) return;
+
+            touchDragItem = item;
+            touchOffsetY = e.touches[0].clientY - item.getBoundingClientRect().top;
+            touchStartTime = Date.now();
+
+            touchClone = item.cloneNode(true);
+            touchClone.style.position = 'fixed';
+            touchClone.style.width = item.offsetWidth + 'px';
+            touchClone.style.zIndex = '99999';
+            touchClone.style.opacity = '0.85';
+            touchClone.style.pointerEvents = 'none';
+            touchClone.style.transform = 'scale(0.97) rotate(1deg)';
+            touchClone.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
+            touchClone.style.borderColor = '#00b14f';
+            touchClone.style.borderRadius = '16px';
+            document.body.appendChild(touchClone);
+
+            item.style.opacity = '0.3';
+
+            const x = e.touches[0].clientX - item.offsetWidth / 2;
+            const y = e.touches[0].clientY - touchOffsetY;
+            touchClone.style.left = x + 'px';
+            touchClone.style.top = y + 'px';
+        }, { passive: true });
+
+        container.addEventListener('touchmove', function(e) {
+            if (!touchDragItem || !touchClone) return;
+            e.preventDefault();
+
+            const x = e.touches[0].clientX - touchDragItem.offsetWidth / 2;
+            const y = e.touches[0].clientY - touchOffsetY;
+            touchClone.style.left = x + 'px';
+            touchClone.style.top = y + 'px';
+
+            const touchY = e.touches[0].clientY;
+            container.querySelectorAll('.menu-item').forEach(function(el) {
+                el.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+
+            const items = container.querySelectorAll('.menu-item');
+            for (const el of items) {
+                if (el === touchDragItem) continue;
+                const rect = el.getBoundingClientRect();
+                if (touchY >= rect.top && touchY <= rect.bottom) {
+                    const midY = rect.top + rect.height / 2;
+                    el.classList.add(touchY < midY ? 'drag-over-top' : 'drag-over-bottom');
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchend', function(e) {
+            if (!touchDragItem || !touchClone) return;
+            if (touchClone.parentNode) touchClone.parentNode.removeChild(touchClone);
+            touchClone = null;
+
+            const touchY = e.changedTouches[0].clientY;
+            const items = container.querySelectorAll('.menu-item');
+            let targetEl = null;
+            let insertBefore = true;
+
+            for (const el of items) {
+                if (el === touchDragItem) continue;
+                const rect = el.getBoundingClientRect();
+                if (touchY >= rect.top && touchY <= rect.bottom) {
+                    targetEl = el;
+                    const midY = rect.top + rect.height / 2;
+                    insertBefore = touchY < midY;
+                    break;
+                }
+            }
+
+            items.forEach(function(el) { el.classList.remove('drag-over-top', 'drag-over-bottom'); });
+
+            if (targetEl) {
+                const allItems = Array.from(items);
+                const ids = allItems.map(function(el) { return el.getAttribute('data-id'); });
+                const dragId = touchDragItem.getAttribute('data-id');
+                const targetId = targetEl.getAttribute('data-id');
+                const dragIdx = ids.indexOf(dragId);
+                const targetIdx = ids.indexOf(targetId);
+
+                if (dragIdx !== -1 && targetIdx !== -1) {
+                    ids.splice(dragIdx, 1);
+                    const newTargetIdx = ids.indexOf(targetId);
+                    ids.splice(insertBefore ? newTargetIdx : newTargetIdx + 1, 0, dragId);
+
+                    getMenuFromFirebase(function(menu) {
+                        const menuMap = {};
+                        menu.forEach(function(item) { menuMap[item.id] = item; });
+                        const reordered = [];
+                        ids.forEach(function(id) {
+                            if (menuMap[id]) { reordered.push(menuMap[id]); delete menuMap[id]; }
+                        });
+                        Object.keys(menuMap).forEach(function(id) { reordered.push(menuMap[id]); });
+                        saveMenuToFirebase(reordered, function() { renderAdminList(); });
+                    });
+                }
+            }
+
+            touchDragItem.style.opacity = '1';
+            touchDragItem = null;
+        }, { passive: true });
     }
 
     // ========== THÊM MÓN ==========
@@ -801,18 +1099,6 @@
         });
     }
 
-    // ========== DI CHUYỂN ==========
-    function moveItem(index, direction) {
-        getMenuFromFirebase(function(menu) {
-            const target = index + direction;
-            if (target < 0 || target >= menu.length) return;
-            [menu[index], menu[target]] = [menu[target], menu[index]];
-            saveMenuToFirebase(menu, function() {
-                renderAdminList();
-            });
-        });
-    }
-
     // ========== HELPER ==========
     function escapeHtml(text) {
         if (!text) return '';
@@ -835,6 +1121,7 @@
     function saveGalleryToFirebase(images, callback) {
         const galleryRef = db.ref(GALLERY_REF_KEY);
         galleryRef.set(images).then(function() {
+            versionRef.update({ gallery: Date.now() });
             if (callback) callback();
         });
     }
@@ -850,12 +1137,189 @@
             }
 
             container.innerHTML = images.map(function(url, index) {
-                return '<div class="gallery-admin-item">' +
+                return '<div class="gallery-admin-item" draggable="true" data-gallery-index="' + index + '">' +
                     '<img src="' + url + '" alt="Ảnh quán" onerror="this.parentElement.style.display=\'none\'" />' +
                     '<button class="gallery-del" onclick="deleteGalleryImage(' + index + ')" title="Xóa ảnh">&times;</button>' +
                     '</div>';
             }).join('');
+
+            initGalleryDragDrop();
         });
+    }
+
+    // ========== DRAG & DROP GALLERY ==========
+    function initGalleryDragDrop() {
+        const container = document.getElementById('galleryAdminList');
+        if (!container) return;
+
+        let dragItem = null;
+
+        container.addEventListener('dragstart', function(e) {
+            const item = e.target.closest('.gallery-admin-item');
+            if (!item) return;
+            if (e.target.closest('.gallery-del')) { e.preventDefault(); return; }
+            dragItem = item;
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        container.addEventListener('dragend', function(e) {
+            const item = e.target.closest('.gallery-admin-item');
+            if (item) item.classList.remove('dragging');
+            container.querySelectorAll('.gallery-admin-item').forEach(function(el) {
+                el.classList.remove('drag-over-left', 'drag-over-right');
+            });
+            dragItem = null;
+        });
+
+        container.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.target.closest('.gallery-admin-item');
+            if (!target || target === dragItem) return;
+
+            container.querySelectorAll('.gallery-admin-item').forEach(function(el) {
+                el.classList.remove('drag-over-left', 'drag-over-right');
+            });
+
+            const rect = target.getBoundingClientRect();
+            const midX = rect.left + rect.width / 2;
+            target.classList.add(e.clientX < midX ? 'drag-over-left' : 'drag-over-right');
+        });
+
+        container.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const target = e.target.closest('.gallery-admin-item');
+            if (!target || !dragItem || target === dragItem) {
+                container.querySelectorAll('.gallery-admin-item').forEach(function(el) {
+                    el.classList.remove('drag-over-left', 'drag-over-right');
+                });
+                return;
+            }
+
+            const rect = target.getBoundingClientRect();
+            const midX = rect.left + rect.width / 2;
+            const insertBefore = e.clientX < midX;
+
+            const dragIdx = parseInt(dragItem.getAttribute('data-gallery-index'));
+            const targetIdx = parseInt(target.getAttribute('data-gallery-index'));
+
+            if (isNaN(dragIdx) || isNaN(targetIdx)) return;
+
+            getGalleryFromFirebase(function(images) {
+                const item = images.splice(dragIdx, 1)[0];
+                const newTargetIdx = images.indexOf(images[targetIdx > dragIdx ? targetIdx - 1 : targetIdx]);
+                const insertIdx = insertBefore ? newTargetIdx : newTargetIdx + 1;
+                images.splice(insertIdx, 0, item);
+                saveGalleryToFirebase(images, function() { renderGalleryAdmin(); });
+            });
+
+            container.querySelectorAll('.gallery-admin-item').forEach(function(el) {
+                el.classList.remove('drag-over-left', 'drag-over-right');
+            });
+            dragItem = null;
+        });
+
+        // Touch support cho mobile
+        let touchDragItem = null;
+        let touchClone = null;
+        let touchOffsetX = 0;
+
+        container.addEventListener('touchstart', function(e) {
+            const item = e.target.closest('.gallery-admin-item');
+            if (!item) return;
+            if (e.target.closest('.gallery-del')) return;
+
+            touchDragItem = item;
+            touchOffsetX = e.touches[0].clientX - item.getBoundingClientRect().left;
+
+            touchClone = item.cloneNode(true);
+            touchClone.style.position = 'fixed';
+            touchClone.style.width = item.offsetWidth + 'px';
+            touchClone.style.zIndex = '99999';
+            touchClone.style.opacity = '0.85';
+            touchClone.style.pointerEvents = 'none';
+            touchClone.style.transform = 'scale(0.95) rotate(2deg)';
+            touchClone.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
+            touchClone.style.borderColor = '#0A84FF';
+            touchClone.style.borderRadius = '12px';
+            document.body.appendChild(touchClone);
+
+            item.style.opacity = '0.3';
+
+            const x = e.touches[0].clientX - touchOffsetX;
+            const y = e.touches[0].clientY - 100;
+            touchClone.style.left = x + 'px';
+            touchClone.style.top = y + 'px';
+        }, { passive: true });
+
+        container.addEventListener('touchmove', function(e) {
+            if (!touchDragItem || !touchClone) return;
+            e.preventDefault();
+
+            const x = e.touches[0].clientX - touchOffsetX;
+            const y = e.touches[0].clientY - 100;
+            touchClone.style.left = x + 'px';
+            touchClone.style.top = y + 'px';
+
+            const touchX = e.touches[0].clientX;
+            container.querySelectorAll('.gallery-admin-item').forEach(function(el) {
+                el.classList.remove('drag-over-left', 'drag-over-right');
+            });
+
+            const items = container.querySelectorAll('.gallery-admin-item');
+            for (const el of items) {
+                if (el === touchDragItem) continue;
+                const rect = el.getBoundingClientRect();
+                if (touchX >= rect.left && touchX <= rect.right) {
+                    const midX = rect.left + rect.width / 2;
+                    el.classList.add(touchX < midX ? 'drag-over-left' : 'drag-over-right');
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchend', function(e) {
+            if (!touchDragItem || !touchClone) return;
+            if (touchClone.parentNode) touchClone.parentNode.removeChild(touchClone);
+            touchClone = null;
+
+            const touchX = e.changedTouches[0].clientX;
+            const items = container.querySelectorAll('.gallery-admin-item');
+            let targetEl = null;
+            let insertBefore = true;
+
+            for (const el of items) {
+                if (el === touchDragItem) continue;
+                const rect = el.getBoundingClientRect();
+                if (touchX >= rect.left && touchX <= rect.right) {
+                    targetEl = el;
+                    const midX = rect.left + rect.width / 2;
+                    insertBefore = touchX < midX;
+                    break;
+                }
+            }
+
+            items.forEach(function(el) { el.classList.remove('drag-over-left', 'drag-over-right'); });
+
+            if (targetEl) {
+                const dragIdx = parseInt(touchDragItem.getAttribute('data-gallery-index'));
+                const targetIdx = parseInt(targetEl.getAttribute('data-gallery-index'));
+
+                if (!isNaN(dragIdx) && !isNaN(targetIdx)) {
+                    getGalleryFromFirebase(function(images) {
+                        const item = images.splice(dragIdx, 1)[0];
+                        const newTargetIdx = images.indexOf(images[targetIdx > dragIdx ? targetIdx - 1 : targetIdx]);
+                        const insertIdx = insertBefore ? newTargetIdx : newTargetIdx + 1;
+                        images.splice(insertIdx, 0, item);
+                        saveGalleryToFirebase(images, function() { renderGalleryAdmin(); });
+                    });
+                }
+            }
+
+            touchDragItem.style.opacity = '1';
+            touchDragItem = null;
+        }, { passive: true });
     }
 
     function addGalleryImage() {

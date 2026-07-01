@@ -2,19 +2,17 @@
 // CẤU HÌNH
 // ============================================
 
-// Telegram
 const TELEGRAM_BOT_TOKEN = "8813111415:AAHjX0-vXMM0dVgVqDSSZNbHtiQ2wiVsFrc";
 const TELEGRAM_CHAT_ID = "6372876364";
 
-// Links
 const GRAB_LINK_ANDROID = "https://applink.grab.com/open?screenType=GRABFOOD&merchantIDs=5-C4JVVETAR751KA";
 const GRAB_LINK_IOS = "https://r.grab.com/o/MBVNJ3ii";
 const ZALO_LINK = "https://zalo.me/0937513139";
 const PHONE = "0937513139";
 
-// Storage keys
+// Storage keys (MENU_VERSION_KEY & GALLERY_VERSION_KEY are defined in firebase-config.js)
 const MENU_CACHE_KEY = 'milano_menu_cache';
-const MENU_TIMESTAMP_KEY = 'milano_menu_timestamp';
+const GALLERY_CACHE_KEY = 'milano_gallery_cache';
 const STORAGE_KEY = "milano_customer_id";
 const VISIT_KEY = "milano_visit_count";
 const SESSION_NOTIFIED_KEY = "milano_session_notified";
@@ -88,46 +86,179 @@ function isAndroid() {
 }
 
 // ============================================
-// CACHE
+// VERSION MANAGEMENT
 // ============================================
 
-function getMenuFromCache() {
+function getSavedVersion(key) {
     try {
-        const cached = localStorage.getItem(MENU_CACHE_KEY);
-        if (cached) {
-            const parsed = JSON.parse(cached);
-            if (parsed && parsed.length > 0) {
-                return parsed;
+        return localStorage.getItem(key) || '0';
+    } catch {
+        return '0';
+    }
+}
+
+function saveVersion(key, version) {
+    try {
+        localStorage.setItem(key, String(version));
+    } catch {}
+}
+
+function getFromCache(key) {
+    try {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : null;
+    } catch {
+        return null;
+    }
+}
+
+function saveToCache(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch {}
+}
+
+// ============================================
+// CHECK VERSION - CHỈ TẢI KHI CÓ THAY ĐỔI
+// ============================================
+
+function checkVersionAndLoad() {
+    console.log('🔍 Kiểm tra version...');
+    
+    // Kiểm tra menu
+    const savedMenuVersion = getSavedVersion(MENU_VERSION_KEY);
+    const savedGalleryVersion = getSavedVersion(GALLERY_VERSION_KEY);
+    
+    // Lấy version từ Firebase
+    if (typeof versionRef !== 'undefined') {
+        versionRef.once('value').then(snapshot => {
+            const versions = snapshot.val() || {};
+            const firebaseMenuVersion = versions.menu || 0;
+            const firebaseGalleryVersion = versions.gallery || 0;
+            
+            console.log('📦 Menu version:', savedMenuVersion, '→', firebaseMenuVersion);
+            console.log('📦 Gallery version:', savedGalleryVersion, '→', firebaseGalleryVersion);
+            
+            // So sánh menu
+            if (String(firebaseMenuVersion) !== String(savedMenuVersion)) {
+                console.log('🔄 Menu có thay đổi, tải mới...');
+                loadMenuFromFirebase();
+            } else {
+                console.log('✅ Menu không đổi, dùng cache');
+                const cached = getFromCache(MENU_CACHE_KEY);
+                if (cached) {
+                    renderMenuItems(cached);
+                } else {
+                    loadMenuFromFirebase();
+                }
             }
-        }
-    } catch (e) {
-        console.error('Lỗi đọc cache:', e);
-    }
-    return null;
-}
-
-function saveMenuToCache(menu) {
-    try {
-        if (menu && menu.length > 0) {
-            localStorage.setItem(MENU_CACHE_KEY, JSON.stringify(menu));
-            localStorage.setItem(MENU_TIMESTAMP_KEY, Date.now().toString());
-            console.log('💾 Đã lưu cache:', menu.length, 'món');
-        }
-    } catch (e) {
-        console.error('Lỗi lưu cache:', e);
+            
+            // So sánh gallery
+            if (String(firebaseGalleryVersion) !== String(savedGalleryVersion)) {
+                console.log('🔄 Gallery có thay đổi, tải mới...');
+                loadGalleryFromFirebase();
+            } else {
+                console.log('✅ Gallery không đổi, dùng cache');
+                const cached = getFromCache(GALLERY_CACHE_KEY);
+                if (cached) {
+                    renderGalleryItems(cached);
+                } else {
+                    loadGalleryFromFirebase();
+                }
+            }
+        }).catch(() => {
+            // Fallback: load từ Firebase nếu lỗi
+            console.log('⚠️ Lỗi đọc version, tải từ Firebase...');
+            loadMenuFromFirebase();
+            loadGalleryFromFirebase();
+        });
+    } else {
+        // Fallback
+        loadMenuFromFirebase();
+        loadGalleryFromFirebase();
     }
 }
 
 // ============================================
-// RENDER MENU - HIỂN THỊ NGAY
+// MENU - LOAD TỪ FIREBASE
+// ============================================
+
+function loadMenuFromFirebase() {
+    if (typeof menuRef === 'undefined') {
+        renderMenuItems(DEFAULT_MENU);
+        return;
+    }
+    
+    console.log('🔄 Tải menu từ Firebase...');
+    showLoading();
+    
+    menuRef.once('value').then(snapshot => {
+        const data = snapshot.val();
+        
+        if (data && data.length > 0) {
+            renderMenuItems(data);
+            saveToCache(MENU_CACHE_KEY, data);
+            // Cập nhật version
+            versionRef.once('value').then(vs => {
+                const versions = vs.val() || {};
+                if (versions.menu) {
+                    saveVersion(MENU_VERSION_KEY, versions.menu);
+                }
+            });
+        } else {
+            // Tạo mặc định
+            menuRef.set(DEFAULT_MENU).then(() => {
+                renderMenuItems(DEFAULT_MENU);
+                saveToCache(MENU_CACHE_KEY, DEFAULT_MENU);
+                versionRef.update({ menu: Date.now() });
+            });
+        }
+    }).catch(error => {
+        console.error('❌ Lỗi tải menu:', error);
+        const fallback = getFromCache(MENU_CACHE_KEY) || DEFAULT_MENU;
+        renderMenuItems(fallback);
+    });
+}
+
+// ============================================
+// GALLERY - LOAD TỪ FIREBASE
+// ============================================
+
+function loadGalleryFromFirebase() {
+    if (typeof db === 'undefined') {
+        renderGalleryItems([]);
+        return;
+    }
+    
+    console.log('🔄 Tải gallery từ Firebase...');
+    
+    const galleryRef = db.ref('gallery');
+    galleryRef.once('value').then(snapshot => {
+        const data = snapshot.val() || [];
+        
+        renderGalleryItems(data);
+        saveToCache(GALLERY_CACHE_KEY, data);
+        // Cập nhật version
+        versionRef.once('value').then(vs => {
+            const versions = vs.val() || {};
+            if (versions.gallery) {
+                saveVersion(GALLERY_VERSION_KEY, versions.gallery);
+            }
+        });
+    }).catch(error => {
+        console.error('❌ Lỗi tải gallery:', error);
+        const fallback = getFromCache(GALLERY_CACHE_KEY) || [];
+        renderGalleryItems(fallback);
+    });
+}
+
+// ============================================
+// RENDER MENU
 // ============================================
 
 function renderMenuItems(menu) {
     const grid = document.getElementById('menuGrid');
-    if (!grid) {
-        console.error('❌ Không tìm thấy #menuGrid');
-        return;
-    }
+    if (!grid) return;
     
     if (!menu || menu.length === 0) {
         grid.innerHTML = `
@@ -139,16 +270,15 @@ function renderMenuItems(menu) {
         return;
     }
     
-    // Render HTML - style inline để đảm bảo hiển thị
     let html = '';
     menu.forEach((item) => {
         const imageUrl = item.image || 'https://via.placeholder.com/200/1a1a1a/00b14f?text=Milano';
         html += `
-            <div class="menu-list-item" style="opacity:1 !important; transform:none !important; display:flex !important;">
+            <div class="menu-list-item reveal">
                 <div class="menu-list-img">
-                    <img 
-                        src="${imageUrl}" 
-                        alt="${escapeHtml(item.name)}" 
+                    <img
+                        src="${imageUrl}"
+                        alt="${escapeHtml(item.name)}"
                         loading="lazy"
                         onerror="this.src='https://via.placeholder.com/200/1a1a1a/00b14f?text=Milano'"
                     />
@@ -178,137 +308,39 @@ function showLoading() {
 }
 
 // ============================================
-// LOAD MENU - CHIẾN LƯỢC ƯU TIÊN HIỂN THỊ
+// RENDER GALLERY
 // ============================================
 
-function loadMenu() {
-    console.log('🔄 Bắt đầu load menu...');
-    
-    // Bước 1: Kiểm tra cache - hiển thị ngay nếu có
-    const cached = getMenuFromCache();
-    if (cached && cached.length > 0) {
-        console.log('✅ Dùng cache:', cached.length, 'món');
-        renderMenuItems(cached);
-        
-        // Bước 2: Kiểm tra Firebase để cập nhật (background)
-        checkFirebaseUpdate();
-        return;
-    }
-    
-    // Bước 3: Không có cache, hiển thị loading
-    console.log('🔄 Không có cache, tải từ Firebase...');
-    showLoading();
-    
-    // Bước 4: Tải từ Firebase
-    loadFromFirebase();
-}
-
-function loadFromFirebase() {
-    // Kiểm tra Firebase đã sẵn sàng
-    if (typeof menuRef === 'undefined') {
-        console.error('❌ menuRef chưa được định nghĩa! Dùng menu mặc định.');
-        renderMenuItems(DEFAULT_MENU);
-        saveMenuToCache(DEFAULT_MENU);
-        return;
-    }
-    
-    menuRef.once('value')
-        .then(snapshot => {
-            const data = snapshot.val();
-            console.log('📦 Firebase trả về:', data ? data.length + ' món' : 'empty');
-            
-            if (data && data.length > 0) {
-                renderMenuItems(data);
-                saveMenuToCache(data);
-            } else {
-                // Firebase trống, tạo menu mặc định
-                console.log('📦 Firebase trống, tạo menu mặc định');
-                return menuRef.set(DEFAULT_MENU).then(() => {
-                    renderMenuItems(DEFAULT_MENU);
-                    saveMenuToCache(DEFAULT_MENU);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('❌ Lỗi Firebase:', error);
-            // Fallback: dùng cache hoặc default
-            const fallback = getMenuFromCache() || DEFAULT_MENU;
-            renderMenuItems(fallback);
-            if (!getMenuFromCache()) {
-                saveMenuToCache(DEFAULT_MENU);
-            }
-        });
-}
-
-function checkFirebaseUpdate() {
-    if (typeof menuRef === 'undefined') return;
-    
-    menuRef.once('value')
-        .then(snapshot => {
-            const data = snapshot.val();
-            if (data && data.length > 0) {
-                const cached = getMenuFromCache();
-                // So sánh nội dung
-                if (!cached || JSON.stringify(data) !== JSON.stringify(cached)) {
-                    console.log('🔄 Phát hiện thay đổi menu, cập nhật...');
-                    renderMenuItems(data);
-                    saveMenuToCache(data);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('❌ Lỗi kiểm tra cập nhật:', error);
-        });
-}
-
-// ============================================
-// GALLERY
-// ============================================
-
-const GALLERY_REF_KEY = 'gallery';
-
-function renderGallery() {
+function renderGalleryItems(images) {
     const container = document.getElementById('galleryScroll');
-    if (!container) {
-        console.error('❌ Không tìm thấy #galleryScroll');
+    if (!container) return;
+    
+    if (!images || images.length === 0) {
+        container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
         return;
     }
+    
+    // Chỉ hiển thị 10 ảnh mới nhất
+    const displayImages = images.slice(-10).reverse();
+    
+    container.innerHTML = displayImages.map((url, index) => `
+        <div class="gallery-item">
+            <div class="gallery-item-inner">
+                <img
+                    src="${url}"
+                    alt="Hình ảnh quán"
+                    loading="${index < 3 ? 'eager' : 'lazy'}"
+                    decoding="async"
+                    onerror="this.parentElement.style.display='none'"
+                    style="background:#1a1a1a; min-height:200px;"
+                />
+                <div class="gallery-item-caption">✦ Milano Coffee 259</div>
+            </div>
+        </div>
+    `).join('');
 
-    if (typeof db === 'undefined') {
-        console.error('❌ db chưa được định nghĩa');
-        container.innerHTML = '<div class="gallery-empty">Không thể tải hình ảnh</div>';
-        return;
-    }
-
-    const galleryRef = db.ref(GALLERY_REF_KEY);
-    galleryRef.once('value')
-        .then(snapshot => {
-            const images = snapshot.val();
-            if (!images || images.length === 0) {
-                container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
-                return;
-            }
-            
-            container.innerHTML = images.map(url => `
-                <div class="gallery-item">
-                    <div class="gallery-item-inner">
-                        <img 
-                            src="${url}" 
-                            alt="Hình ảnh quán" 
-                            loading="lazy"
-                            onerror="this.parentElement.style.display='none'"
-                        />
-                        <div class="gallery-item-caption">✦ Milano Coffee 259</div>
-                    </div>
-                </div>
-            `).join('');
-
-            setupGalleryEffect(container);
-        })
-        .catch(error => {
-            console.error('❌ Lỗi gallery:', error);
-            container.innerHTML = '<div class="gallery-empty">Không thể tải hình ảnh</div>';
-        });
+    setupGalleryEffect(container);
+    console.log('✅ Đã render', displayImages.length, 'ảnh gallery');
 }
 
 function setupGalleryEffect(container) {
@@ -347,7 +379,6 @@ function setupGalleryEffect(container) {
         }
     });
 
-    // Cập nhật lần đầu
     setTimeout(updateGallery, 100);
 }
 
@@ -402,9 +433,8 @@ async function sendToTelegram(message) {
                 parse_mode: "HTML"
             })
         });
-        console.log('✅ Đã gửi Telegram');
     } catch (error) {
-        console.error('❌ Lỗi gửi Telegram:', error);
+        console.error('Lỗi gửi Telegram:', error);
     }
 }
 
@@ -476,42 +506,62 @@ function handleAction(type) {
 }
 
 // ============================================
-// REVEAL ANIMATION
+// REVEAL ON SCROLL - HIỆU ỨNG LIÊN TỤC KHI CUỘN (cả 2 chiều)
 // ============================================
 
 function initRevealOnScroll() {
-    const reveals = document.querySelectorAll('.reveal');
+    // Danh sách các class reveal cần theo dõi
+    const revealSelectors = [
+        '.reveal', '.reveal-left', '.reveal-right', '.reveal-scale',
+        '.menu-list-item', '.gallery-item',
+        '.section-title', '.section-title-sm', '.section-desc',
+        '.info-card', '.trust-card', '.map'
+    ];
     
-    function isVisible(el, threshold) {
-        const rect = el.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        const visibleTop = Math.max(0, rect.top);
-        const visibleBottom = Math.min(windowHeight, rect.bottom);
-        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
-        return visibleHeight / rect.height > threshold;
-    }
-    
-    function checkAll() {
-        reveals.forEach(el => {
-            if (isVisible(el, 0.15)) {
-                el.classList.add('visible');
+    // IntersectionObserver - toggle visible liên tục (cả vào và ra)
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            } else {
+                entry.target.classList.remove('visible');
             }
         });
-    }
-
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            requestAnimationFrame(() => {
-                checkAll();
-                ticking = false;
-            });
-            ticking = true;
-        }
+    }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -20px 0px'
     });
     
-    // Kiểm tra lần đầu
-    setTimeout(checkAll, 300);
+    // Observe tất cả các element hiện tại
+    document.querySelectorAll(revealSelectors.join(',')).forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Observe các element mới được thêm vào (cho menu/gallery render động)
+    const mutationObs = new MutationObserver(() => {
+        document.querySelectorAll(revealSelectors.join(',')).forEach(el => {
+            // Kiểm tra nếu chưa được observe (bằng cách check không có visible class do observer)
+            // Cách đơn giản: observe tất cả, observer sẽ bỏ qua element đã được observe
+            try { observer.observe(el); } catch(e) {}
+        });
+    });
+    mutationObs.observe(document.body, { childList: true, subtree: true });
+    
+    // Chạy lần đầu để bắt các element đã visible ngay từ đầu
+    setTimeout(() => {
+        document.querySelectorAll(revealSelectors.join(',')).forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const visibleTop = Math.max(0, rect.top);
+            const visibleBottom = Math.min(windowHeight, rect.bottom);
+            const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+            if (visibleHeight / rect.height > 0.15) {
+                el.classList.add('visible');
+            } else {
+                el.classList.remove('visible');
+            }
+        });
+    }, 150);
 }
 
 // ============================================
@@ -528,20 +578,18 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('📱 Thiết bị:', navigator.userAgent);
     console.log('📦 Firebase:', typeof firebase !== 'undefined' ? '✅' : '❌');
     console.log('📦 menuRef:', typeof menuRef !== 'undefined' ? '✅' : '❌');
+    console.log('📦 versionRef:', typeof versionRef !== 'undefined' ? '✅' : '❌');
     
-    // 1. Load menu - ưu tiên hiển thị ngay
-    loadMenu();
+    // 1. Kiểm tra version và tải dữ liệu (chỉ 1 lần khi load)
+    checkVersionAndLoad();
     
-    // 2. Load gallery
-    renderGallery();
-    
-    // 3. Init animation
+    // 2. Init animation - hiệu ứng cuộn mượt
     initRevealOnScroll();
     
-    // 4. Thông báo truy cập
-    notifyVisit();
+    // 3. Thông báo truy cập
+    setTimeout(notifyVisit, 1000);
     
-    console.log('✅ Khởi tạo hoàn tất');
+    console.log('✅ Khởi tạo hoàn tất! 🚀');
 });
 
 // ============================================
@@ -552,6 +600,5 @@ window.handleAction = handleAction;
 window.callNow = callNow;
 window.openGrab = openGrab;
 window.openZalo = openZalo;
-window.loadMenu = loadMenu; // Debug
 
-console.log('✅ Script loaded successfully');
+console.log('✅ Script loaded - Version mode 🔥');

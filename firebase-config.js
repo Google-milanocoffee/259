@@ -15,5 +15,11 @@ firebase.initializeApp(firebaseConfig);
 // Services
 const db = firebase.database();
 
-// Reference
+// References
 const menuRef = db.ref('menu');
+const galleryRef = db.ref('gallery');
+const versionRef = db.ref('version'); // 👈 THÊM VERSION
+
+// Version keys
+const MENU_VERSION_KEY = 'milano_menu_version';
+const GALLERY_VERSION_KEY = 'milano_gallery_version';

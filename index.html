@@ -70,7 +70,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -81,7 +81,7 @@
 <body>
 
 <!-- HERO - gọn nhẹ -->
-<section class="hero" aria-label="Giới thiệu Milano Coffee 259">
+<section class="hero reveal-scale visible" aria-label="Giới thiệu Milano Coffee 259">
 
     <div class="hero-bg">
         <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1400&auto=format&fit=crop" alt="Milano Coffee" loading="eager">
@@ -111,10 +111,10 @@
 </section>
 
 <!-- GALLERY ẢNH QUÁN - dạng TikTok cuộn ngang -->
-<section class="section section-compact reveal reveal-left" aria-label="Hình ảnh quán">
+<section class="section section-compact reveal-left" aria-label="Hình ảnh quán">
     <div class="container">
 
-        <div class="section-title-sm">
+        <div class="section-title-sm reveal">
             Hình ảnh quán
         </div>
 
@@ -126,10 +126,10 @@
 </section>
 
 <!-- MENU - lên trên cùng -->
-<section class="section reveal reveal-right" aria-label="Thực đơn">
+<section class="section reveal" aria-label="Thực đơn">
     <div class="container">
 
-        <div class="section-title">
+        <div class="section-title reveal">
             Thực đơn
         </div>
 
@@ -147,14 +147,14 @@
 </section>
 
 <!-- GRAB TRUST - ảnh Trứ Danh -->
-<section class="section section-compact reveal reveal-left" aria-label="Danh tiếng trên Grab">
+<section class="section section-compact reveal-right" aria-label="Danh tiếng trên Grab">
     <div class="container">
 
-        <div class="section-title-sm">
+        <div class="section-title-sm reveal">
             &#9733; Quán Trứ Danh trên GrabFood
         </div>
 
-        <div class="trust-card" onclick="handleAction('grab')" style="cursor:pointer;" role="button" tabindex="0" aria-label="Đặt đồ uống qua Grab">
+        <div class="trust-card reveal" onclick="handleAction('grab')" style="cursor:pointer;" role="button" tabindex="0" aria-label="Đặt đồ uống qua Grab">
             <img
                 src="https://raw.githubusercontent.com/Google-milanocoffee/259/main/anh/z7996765141710_0ef741eea1d5757f329a1b18e30b41c5.jpg"
                 alt="Milano Coffee 259 - Quán Trứ Danh trên GrabFood"
@@ -168,14 +168,14 @@
 </section>
 
 <!-- ABOUT - ngắn gọn -->
-<section class="section section-compact reveal reveal-right" aria-label="Về Milano Coffee 259">
+<section class="section section-compact reveal-left" aria-label="Về Milano Coffee 259">
     <div class="container">
 
-        <div class="section-title-sm">
+        <div class="section-title-sm reveal">
             Về Milano Coffee 259
         </div>
 
-        <div class="info-card">
+        <div class="info-card reveal">
             <div class="info-item">
                 Milano Coffee là chuỗi cà phê nhượng quyền nổi tiếng toàn quốc. Chi nhánh <strong>259 Phan Rang, Ninh Thuận</strong> phục vụ <strong>cà phê, trà sữa, matcha, nước trái cây, yaourt</strong> đúng chuẩn thương hiệu.
             </div>
@@ -188,14 +188,14 @@
 </section>
 
 <!-- CONTACT -->
-<section class="section section-compact reveal reveal-left" aria-label="Liên hệ">
+<section class="section section-compact reveal" aria-label="Liên hệ">
     <div class="container">
 
-        <div class="section-title-sm">
+        <div class="section-title-sm reveal">
             Liên hệ
         </div>
 
-        <div class="info-card">
+        <div class="info-card reveal">
 
             <div class="info-row">
                 <span class="info-label">Địa chỉ</span>
@@ -224,7 +224,7 @@
                 <span>Milano Coffee 259</span>
             </div>
 
-            <div class="map">
+            <div class="map reveal">
                 <iframe
                     src="https://maps.google.com/maps?q=11.564652532386551,108.99499208002565&z=16&output=embed"
                     loading="lazy"
@@ -255,8 +255,8 @@
     </div>
 </div>
 
-<script src="firebase-config.js"></script>
-<script src="script.js"></script>
+<script src="firebase-config.js?v=2"></script>
+<script src="script.js?v=5"></script>
 
 </body>
 </html>

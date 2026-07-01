@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Init Version</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+    <h1>Đang khởi tạo version...</h1>
+    <script>
+        // Khởi tạo version
+        versionRef.set({
+            menu: Date.now(),
+            gallery: Date.now()
+        }).then(() => {
+            document.body.innerHTML = '<h1 style="color:green;">✅ Đã khởi tạo version thành công!</h1>';
+        }).catch(error => {
+            document.body.innerHTML = '<h1 style="color:red;">❌ Lỗi: ' + error.message + '</h1>';
+        });
+    </script>
+</body>
+</html>
