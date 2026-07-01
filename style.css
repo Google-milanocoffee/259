@@ -317,23 +317,24 @@ h1{
     border:none;
 }
 
-/* ===== MENU LIST (giống Grab) ===== */
+/* ===== MENU LIST (giống Grab) - FIX ===== */
 .menu-grid{
     display:flex;
     flex-direction:column;
     gap:12px;
+    min-height:200px; /* Đảm bảo luôn có chiều cao */
 }
 
 .menu-list-item{
-    display:flex;
+    display:flex !important; /* Force hiển thị */
     gap:14px;
     background:var(--card);
     border:1px solid var(--line);
     border-radius:16px;
     padding:12px;
     align-items:center;
-    opacity:0;
-    transform:translateX(-40px);
+    opacity:1 !important; /* Force hiển thị */
+    transform:none !important; /* Bỏ hiệu ứng nếu bị lỗi */
     transition:opacity 0.5s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
 }
 
@@ -352,6 +353,7 @@ h1{
     flex-shrink:0;
     border-radius:12px;
     overflow:hidden;
+    background:#1a1a1a; /* Fallback */
 }
 
 .menu-list-img img{
@@ -370,6 +372,7 @@ h1{
     font-size:15px;
     font-weight:700;
     margin-bottom:3px;
+    color:#fff;
 }
 
 .menu-list-desc{
@@ -507,6 +510,22 @@ h1{
 }
 .footer-space{
     height:72px;
+}
+
+/* Loading animation */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.menu-loading {
+    display:inline-block;
+    width:40px;
+    height:40px;
+    border:3px solid #2c2c2c;
+    border-top-color:#00b14f;
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    margin-bottom:12px;
 }
 
 /* ===== RESPONSIVE ===== */
