@@ -242,48 +242,6 @@ const DEFAULT_MENU = [
     }
 ];
 
-// Cache key
-const CACHE_KEY = 'milano_menu_cache';
-const CACHE_TIME_KEY = 'milano_menu_cache_time';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 giờ
-
-// Khởi tạo menu mặc định lên Firebase nếu chưa có
-function initDefaultMenu() {
-    menuRef.once('value').then(snapshot => {
-        if (!snapshot.exists()) {
-            menuRef.set(DEFAULT_MENU);
-        }
-    });
-}
-
-// Lưu menu vào localStorage cache
-function cacheMenu(menu) {
-    try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(menu));
-        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
-    } catch(e) {
-        // localStorage đầy hoặc không hỗ trợ - bỏ qua
-    }
-}
-
-// Lấy menu từ cache
-function getCachedMenu() {
-    try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
-        
-        if (cached && cacheTime) {
-            const age = Date.now() - parseInt(cacheTime);
-            if (age < CACHE_DURATION) {
-                return JSON.parse(cached);
-            }
-        }
-    } catch(e) {
-        // ignore
-    }
-    return null;
-}
-
 // Render menu dạng danh sách (giống Grab)
 function renderMenuGrid(menu) {
     const grid = document.getElementById('menuGrid');
@@ -308,34 +266,30 @@ function renderMenuGrid(menu) {
     `).join('');
 }
 
-// Render menu: ưu tiên cache, đồng thời lắng nghe Firebase realtime
+// Khởi tạo menu mặc định lên Firebase nếu chưa có
+function initDefaultMenu() {
+    menuRef.once('value').then(snapshot => {
+        if (!snapshot.exists()) {
+            menuRef.set(DEFAULT_MENU);
+        }
+    });
+}
+
+// Render menu: lấy dữ liệu realtime từ Firebase, không cache
 function renderMenu() {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
     
-    // Bước 1: Hiển thị cache ngay lập tức (nếu có)
-    const cached = getCachedMenu();
-    if (cached) {
-        renderMenuGrid(cached);
-    } else {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
-    }
+    // Hiển thị loading
+    grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
     
-    // Bước 2: Lắng nghe Firebase realtime để cập nhật
-    // Dùng once để tránh lắng nghe liên tục (tiết kiệm băng thông)
-    menuRef.once('value', snapshot => {
+    // Lấy dữ liệu realtime từ Firebase (on thay vì once để cập nhật realtime)
+    menuRef.on('value', snapshot => {
         const menu = snapshot.val();
         
         if (menu && menu.length > 0) {
-            // Lưu vào cache
-            cacheMenu(menu);
-            // Render lại nếu dữ liệu khác với cache
-            const cachedStr = JSON.stringify(cached);
-            const freshStr = JSON.stringify(menu);
-            if (cachedStr !== freshStr) {
-                renderMenuGrid(menu);
-            }
-        } else if (!cached) {
+            renderMenuGrid(menu);
+        } else {
             renderMenuGrid(null);
         }
     });
