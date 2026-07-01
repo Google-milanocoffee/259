@@ -12,19 +12,15 @@ const GRAB_LINK_IOS = "https://r.grab.com/o/MBVNJ3ii";
 const ZALO_LINK = "https://zalo.me/0937513139";
 const PHONE = "0937513139";
 
-// Cache keys
+// Storage keys
 const MENU_CACHE_KEY = 'milano_menu_cache';
 const MENU_TIMESTAMP_KEY = 'milano_menu_timestamp';
-const MENU_HASH_KEY = 'milano_menu_hash';
 const STORAGE_KEY = "milano_customer_id";
 const VISIT_KEY = "milano_visit_count";
 const SESSION_NOTIFIED_KEY = "milano_session_notified";
 
-// Cache thời gian 5 phút
-const CACHE_DURATION = 5 * 60 * 1000;
-
 // ============================================
-// MENU MẶC ĐỊNH
+// MENU MẶC ĐỊNH (Dùng khi Firebase lỗi)
 // ============================================
 
 const DEFAULT_MENU = [
@@ -73,7 +69,7 @@ const DEFAULT_MENU = [
 ];
 
 // ============================================
-// UTILITY FUNCTIONS
+// UTILITY
 // ============================================
 
 function escapeHtml(text) {
@@ -81,13 +77,6 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-}
-
-function generateHash(obj) {
-    return JSON.stringify(obj).split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-    }, 0).toString(36);
 }
 
 function isIOS() {
@@ -99,7 +88,7 @@ function isAndroid() {
 }
 
 // ============================================
-// CACHE MANAGEMENT
+// CACHE
 // ============================================
 
 function getMenuFromCache() {
@@ -108,9 +97,7 @@ function getMenuFromCache() {
         if (cached) {
             return JSON.parse(cached);
         }
-    } catch (e) {
-        console.error('Lỗi đọc cache:', e);
-    }
+    } catch (e) {}
     return null;
 }
 
@@ -118,42 +105,19 @@ function saveMenuToCache(menu) {
     try {
         localStorage.setItem(MENU_CACHE_KEY, JSON.stringify(menu));
         localStorage.setItem(MENU_TIMESTAMP_KEY, Date.now().toString());
-        localStorage.setItem(MENU_HASH_KEY, generateHash(menu));
-    } catch (e) {
-        console.error('Lỗi lưu cache:', e);
-    }
-}
-
-function getCachedHash() {
-    try {
-        return localStorage.getItem(MENU_HASH_KEY) || '';
-    } catch (e) {
-        return '';
-    }
-}
-
-function isCacheValid() {
-    try {
-        const timestamp = localStorage.getItem(MENU_TIMESTAMP_KEY);
-        if (!timestamp) return false;
-        const elapsed = Date.now() - parseInt(timestamp);
-        return elapsed < CACHE_DURATION;
-    } catch (e) {
-        return false;
-    }
-}
-
-function isCacheExists() {
-    return localStorage.getItem(MENU_CACHE_KEY) !== null;
+    } catch (e) {}
 }
 
 // ============================================
-// MENU RENDER
+// RENDER MENU - ĐƠN GIẢN HÓA
 // ============================================
 
-function renderMenuGrid(menu) {
+function renderMenuItems(menu) {
     const grid = document.getElementById('menuGrid');
-    if (!grid) return;
+    if (!grid) {
+        console.error('❌ Không tìm thấy #menuGrid');
+        return;
+    }
     
     if (!menu || menu.length === 0) {
         grid.innerHTML = `
@@ -165,202 +129,127 @@ function renderMenuGrid(menu) {
         return;
     }
     
-    grid.innerHTML = menu.map((item, index) => `
-        <div class="menu-list-item" style="transition-delay: ${Math.min(index * 50, 500)}ms">
-            <div class="menu-list-img">
-                <img 
-                    src="${item.image}" 
-                    alt="${escapeHtml(item.name)}" 
-                    loading="lazy" 
-                    onerror="this.src='https://via.placeholder.com/200/1a1a1a/00b14f?text=Milano'"
-                />
+    // Render HTML
+    let html = '';
+    menu.forEach((item, index) => {
+        html += `
+            <div class="menu-list-item" style="transition-delay: ${Math.min(index * 50, 500)}ms">
+                <div class="menu-list-img">
+                    <img 
+                        src="${item.image || 'https://via.placeholder.com/200/1a1a1a/00b14f?text=Milano'}" 
+                        alt="${escapeHtml(item.name)}" 
+                        loading="lazy"
+                        onerror="this.src='https://via.placeholder.com/200/1a1a1a/00b14f?text=Milano'"
+                    />
+                </div>
+                <div class="menu-list-info">
+                    <div class="menu-list-name">${escapeHtml(item.name)}</div>
+                    <div class="menu-list-desc">${escapeHtml(item.desc || '')}</div>
+                    <div class="menu-list-price">${escapeHtml(item.price || '')}</div>
+                </div>
             </div>
-            <div class="menu-list-info">
-                <div class="menu-list-name">${escapeHtml(item.name)}</div>
-                <div class="menu-list-desc">${escapeHtml(item.desc)}</div>
-                <div class="menu-list-price">${escapeHtml(item.price)}</div>
-            </div>
-        </div>
-    `).join('');
+        `;
+    });
+    
+    grid.innerHTML = html;
+    console.log(`✅ Đã render ${menu.length} món`);
 }
 
-function showLoadingState() {
+function showLoading() {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
     grid.innerHTML = `
         <div style="text-align:center;color:#666;padding:40px 0;">
-            <div style="display:inline-block;width:40px;height:40px;border:3px solid #2c2c2c;border-top-color:#00b14f;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
+            <div class="menu-loading"></div>
             <div>Đang tải thực đơn...</div>
-            <style>
-                @keyframes spin { to { transform: rotate(360deg); } }
-            </style>
         </div>
     `;
 }
 
-function showUpdateStatus(message) {
+// ============================================
+// LOAD MENU - CHIẾN LƯỢC ĐƠN GIẢN
+// ============================================
+
+function loadMenu() {
     const grid = document.getElementById('menuGrid');
-    if (!grid) return;
-    
-    let status = document.getElementById('menu-status');
-    if (!status) {
-        status = document.createElement('div');
-        status.id = 'menu-status';
-        status.style.cssText = 'text-align:center;color:#888;font-size:12px;padding:8px 0;border-radius:8px;margin-top:8px;';
-        grid.parentNode.insertBefore(status, grid.nextSibling);
+    if (!grid) {
+        console.error('❌ Không tìm thấy #menuGrid');
+        return;
     }
-    status.textContent = message;
-    status.style.display = 'block';
     
-    if (message.includes('✅') || message.includes('Đã cập nhật')) {
-        status.style.color = '#00b14f';
-        setTimeout(() => {
-            status.style.display = 'none';
-        }, 3000);
+    // 1. Hiển thị loading
+    showLoading();
+    console.log('🔄 Đang tải menu...');
+    
+    // 2. Kiểm tra cache
+    const cached = getMenuFromCache();
+    if (cached && cached.length > 0) {
+        console.log('✅ Dùng cache, có ' + cached.length + ' món');
+        renderMenuItems(cached);
+        // Vẫn kiểm tra Firebase để cập nhật
+        checkFirebaseUpdate();
+        return;
     }
+    
+    // 3. Không có cache, tải từ Firebase
+    console.log('🔄 Không có cache, tải từ Firebase...');
+    loadFromFirebase();
 }
 
-function hideUpdateStatus() {
-    const status = document.getElementById('menu-status');
-    if (status) {
-        status.style.display = 'none';
+function loadFromFirebase() {
+    // Kiểm tra menuRef tồn tại
+    if (typeof menuRef === 'undefined') {
+        console.error('❌ menuRef chưa được định nghĩa!');
+        // Dùng default
+        renderMenuItems(DEFAULT_MENU);
+        saveMenuToCache(DEFAULT_MENU);
+        return;
     }
-}
-
-// ============================================
-// MENU DATA MANAGEMENT
-// ============================================
-
-// Khởi tạo menu mặc định nếu Firebase trống
-function initDefaultMenu() {
-    return menuRef.once('value').then(snapshot => {
-        if (!snapshot.exists()) {
-            console.log('📦 Khởi tạo menu mặc định trên Firebase');
-            return menuRef.set(DEFAULT_MENU).then(() => {
-                saveMenuToCache(DEFAULT_MENU);
-                return DEFAULT_MENU;
-            });
-        }
-        const data = snapshot.val();
-        if (data && data.length > 0) {
-            // Cập nhật cache nếu khác
-            const currentHash = generateHash(data);
-            if (currentHash !== getCachedHash()) {
-                saveMenuToCache(data);
-            }
-            return data;
-        }
-        return null;
-    });
-}
-
-// Tải menu từ Firebase
-function loadMenuFromFirebase(force = false) {
-    return new Promise((resolve, reject) => {
-        // Nếu không force và cache hợp lệ, trả về cache
-        if (!force && isCacheValid()) {
-            const cached = getMenuFromCache();
-            if (cached) {
-                console.log('✅ Dùng cache (còn hiệu lực)');
-                renderMenuGrid(cached);
-                resolve(cached);
-                return;
-            }
-        }
-        
-        // Tải từ Firebase
-        console.log('🔄 Tải menu từ Firebase...');
-        showLoadingState();
-        
-        menuRef.once('value')
-            .then(snapshot => {
-                const menu = snapshot.val();
-                
-                if (menu && menu.length > 0) {
-                    // Lưu cache
-                    saveMenuToCache(menu);
-                    renderMenuGrid(menu);
-                    hideUpdateStatus();
-                    console.log('✅ Đã tải menu từ Firebase');
-                    resolve(menu);
-                } else {
-                    // Không có dữ liệu, dùng default
-                    console.log('⚠️ Firebase trống, dùng menu mặc định');
-                    return menuRef.set(DEFAULT_MENU).then(() => {
-                        saveMenuToCache(DEFAULT_MENU);
-                        renderMenuGrid(DEFAULT_MENU);
-                        return DEFAULT_MENU;
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('❌ Lỗi tải menu:', error);
-                // Fallback: dùng cache hoặc default
-                const fallback = getMenuFromCache() || DEFAULT_MENU;
-                renderMenuGrid(fallback);
-                showUpdateStatus('⚠️ Đang sử dụng dữ liệu đã lưu');
-                resolve(fallback);
-            });
-    });
-}
-
-// Kiểm tra cập nhật từ Firebase (so sánh hash)
-function checkForMenuUpdate() {
-    return menuRef.once('value').then(snapshot => {
-        const menu = snapshot.val();
-        if (!menu || menu.length === 0) return null;
-        
-        const newHash = generateHash(menu);
-        const oldHash = getCachedHash();
-        
-        if (newHash !== oldHash) {
-            console.log('🔄 Phát hiện thay đổi menu, cập nhật...');
-            saveMenuToCache(menu);
-            renderMenuGrid(menu);
-            showUpdateStatus('✅ Đã cập nhật thực đơn mới nhất');
-            return menu;
-        }
-        return null;
-    });
-}
-
-// ============================================
-// MENU - CHIẾN LƯỢC LOAD CHÍNH
-// ============================================
-
-function renderMenu() {
-    const grid = document.getElementById('menuGrid');
-    if (!grid) return;
     
-    // Bước 1: Kiểm tra cache
-    const cachedMenu = getMenuFromCache();
-    const cacheValid = isCacheValid();
-    
-    if (cachedMenu) {
-        // Bước 2: Hiển thị cache ngay lập tức
-        renderMenuGrid(cachedMenu);
-        console.log('📱 Hiển thị menu từ cache');
-        
-        // Bước 3: Nếu cache không còn hiệu lực, tải mới
-        if (!cacheValid) {
-            console.log('⏳ Cache hết hạn, đang tải mới...');
-            showUpdateStatus('⏳ Đang cập nhật thực đơn...');
+    menuRef.once('value')
+        .then(snapshot => {
+            const data = snapshot.val();
+            console.log('📦 Firebase trả về:', data ? data.length + ' món' : 'empty');
             
-            // Tải từ Firebase
-            loadMenuFromFirebase(true).then(() => {
-                hideUpdateStatus();
-            });
-        } else {
-            // Cache còn hiệu lực, kiểm tra xem có thay đổi không (background)
-            console.log('🔍 Kiểm tra cập nhật menu...');
-            checkForMenuUpdate();
-        }
-    } else {
-        // Bước 4: Không có cache, tải từ Firebase
-        console.log('🔄 Không có cache, tải từ Firebase...');
-        showLoadingState();
-        loadMenuFromFirebase(true);
-    }
+            if (data && data.length > 0) {
+                renderMenuItems(data);
+                saveMenuToCache(data);
+            } else {
+                // Firebase trống, tạo default
+                console.log('📦 Firebase trống, tạo menu mặc định');
+                return menuRef.set(DEFAULT_MENU).then(() => {
+                    renderMenuItems(DEFAULT_MENU);
+                    saveMenuToCache(DEFAULT_MENU);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('❌ Lỗi Firebase:', error);
+            // Fallback: dùng cache hoặc default
+            const fallback = getMenuFromCache() || DEFAULT_MENU;
+            renderMenuItems(fallback);
+            if (!getMenuFromCache()) {
+                saveMenuToCache(DEFAULT_MENU);
+            }
+        });
+}
+
+function checkFirebaseUpdate() {
+    if (typeof menuRef === 'undefined') return;
+    
+    menuRef.once('value')
+        .then(snapshot => {
+            const data = snapshot.val();
+            if (data && data.length > 0) {
+                const cached = getMenuFromCache();
+                if (!cached || JSON.stringify(data) !== JSON.stringify(cached)) {
+                    console.log('🔄 Phát hiện thay đổi, cập nhật...');
+                    renderMenuItems(data);
+                    saveMenuToCache(data);
+                }
+            }
+        })
+        .catch(() => {});
 }
 
 // ============================================
@@ -373,32 +262,41 @@ function renderGallery() {
     const container = document.getElementById('galleryScroll');
     if (!container) return;
 
-    const galleryRef = db.ref(GALLERY_REF_KEY);
-    galleryRef.once('value').then(snapshot => {
-        const images = snapshot.val();
-        if (!images || images.length === 0) {
-            container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
-            return;
-        }
-        container.innerHTML = images.map(url => `
-            <div class="gallery-item">
-                <div class="gallery-item-inner">
-                    <img 
-                        src="${url}" 
-                        alt="Hình ảnh quán" 
-                        loading="lazy" 
-                        onerror="this.parentElement.style.display='none'"
-                    />
-                    <div class="gallery-item-caption">✦ Milano Coffee 259</div>
-                </div>
-            </div>
-        `).join('');
-
-        setupGalleryEffect(container);
-    }).catch(error => {
-        console.error('Lỗi tải gallery:', error);
+    if (typeof db === 'undefined') {
+        console.error('❌ db chưa được định nghĩa');
         container.innerHTML = '<div class="gallery-empty">Không thể tải hình ảnh</div>';
-    });
+        return;
+    }
+
+    const galleryRef = db.ref(GALLERY_REF_KEY);
+    galleryRef.once('value')
+        .then(snapshot => {
+            const images = snapshot.val();
+            if (!images || images.length === 0) {
+                container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
+                return;
+            }
+            
+            container.innerHTML = images.map(url => `
+                <div class="gallery-item">
+                    <div class="gallery-item-inner">
+                        <img 
+                            src="${url}" 
+                            alt="Hình ảnh quán" 
+                            loading="lazy"
+                            onerror="this.parentElement.style.display='none'"
+                        />
+                        <div class="gallery-item-caption">✦ Milano Coffee 259</div>
+                    </div>
+                </div>
+            `).join('');
+
+            setupGalleryEffect(container);
+        })
+        .catch(error => {
+            console.error('❌ Lỗi gallery:', error);
+            container.innerHTML = '<div class="gallery-empty">Không thể tải hình ảnh</div>';
+        });
 }
 
 function setupGalleryEffect(container) {
@@ -441,7 +339,7 @@ function setupGalleryEffect(container) {
 }
 
 // ============================================
-// TELEGRAM NOTIFICATIONS
+// TELEGRAM (giữ nguyên)
 // ============================================
 
 function generateCustomerId() {
@@ -462,7 +360,6 @@ function getCustomerInfo() {
     } else {
         visitCount++;
         localStorage.setItem(VISIT_KEY, visitCount);
-        isNew = false;
     }
     
     return { customerId, visitCount, isNew };
@@ -477,13 +374,13 @@ function markSessionNotified() {
 }
 
 async function sendToTelegram(message) {
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    const now = new Date();
-    const timeStr = now.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
-    const fullMessage = `🕐 ${timeStr}\n${message}`;
-    
     try {
-        const response = await fetch(url, {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const now = new Date();
+        const timeStr = now.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+        const fullMessage = `🕐 ${timeStr}\n${message}`;
+        
+        await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -492,38 +389,26 @@ async function sendToTelegram(message) {
                 parse_mode: "HTML"
             })
         });
-        const result = await response.json();
-        if (result.ok) {
-            console.log("✅ Đã gửi thông báo Telegram");
-        } else {
-            console.error("❌ Lỗi Telegram:", result);
-        }
     } catch (error) {
-        console.error("❌ Lỗi gửi Telegram:", error);
+        console.error('Lỗi gửi Telegram:', error);
     }
 }
 
 async function notifyVisit() {
-    if (hasSessionNotified()) {
-        console.log("✅ Đã gửi thông báo trong phiên này");
-        return;
-    }
+    if (hasSessionNotified()) return;
     
     const customer = getCustomerInfo();
-    const userAgent = navigator.userAgent;
     let device = "💻 Desktop";
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) device = "📱 iOS";
+    else if (/Android/.test(navigator.userAgent)) device = "📱 Android";
     
-    if (/iPhone|iPad|iPod/.test(userAgent)) device = "📱 iOS";
-    else if (/Android/.test(userAgent)) device = "📱 Android";
+    const customerStatus = customer.isNew ? "🆓 🎉 KHÁCH MỚI 🎉" : `🔄 KHÁCH CŨ (lần ${customer.visitCount})`;
     
-    const customerStatus = customer.isNew ? "🆓 🎉 **KHÁCH MỚI** 🎉" : `🔄 **KHÁCH CŨ** (lần ${customer.visitCount})`;
-    
-    const message = `🌐 <b>🔴 CÓ NGƯỜI TRUY CẬP</b>\n` +
+    const message = `🌐 CÓ NGƯỜI TRUY CẬP\n` +
                     `━━━━━━━━━━━━━━━━\n` +
                     `${customerStatus}\n` +
-                    `📱 <b>Thiết bị:</b> ${device}\n` +
-                    `🆔 <b>Mã KH:</b> <code>${customer.customerId.substring(0, 12)}...</code>\n` +
-                    `🔗 <b>URL:</b> ${window.location.href}`;
+                    `📱 Thiết bị: ${device}\n` +
+                    `🔗 URL: ${window.location.href}`;
     
     await sendToTelegram(message);
     markSessionNotified();
@@ -531,28 +416,17 @@ async function notifyVisit() {
 
 async function notifyGrabClick() {
     const customer = getCustomerInfo();
-    const message = `🛵 <b>GRAB CLICK</b>\n` +
+    const message = `🛵 GRAB CLICK\n` +
                     `━━━━━━━━━━━━━━━━\n` +
-                    `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
-                    `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+                    `📊 Lần truy cập: ${customer.visitCount}`;
     await sendToTelegram(message);
 }
 
 async function notifyZaloClick() {
     const customer = getCustomerInfo();
-    const message = `💬 <b>ZALO CLICK</b>\n` +
+    const message = `💬 ZALO CLICK\n` +
                     `━━━━━━━━━━━━━━━━\n` +
-                    `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
-                    `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
-    await sendToTelegram(message);
-}
-
-async function notifyCallClick() {
-    const customer = getCustomerInfo();
-    const message = `📞 <b>CALL CLICK</b>\n` +
-                    `━━━━━━━━━━━━━━━━\n` +
-                    `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
-                    `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+                    `📊 Lần truy cập: ${customer.visitCount}`;
     await sendToTelegram(message);
 }
 
@@ -563,43 +437,21 @@ async function notifyCallClick() {
 function openGrab() {
     notifyGrabClick();
     const link = isIOS() ? GRAB_LINK_IOS : GRAB_LINK_ANDROID;
-    
-    const a = document.createElement("a");
-    a.href = link;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    setTimeout(() => {
-        window.location.href = "https://grab.com/vn/";
-    }, 3000);
+    window.open(link, '_blank');
 }
 
 function openZalo() {
     notifyZaloClick();
-    if (isIOS() || isAndroid()) {
-        window.location.href = "zalo://";
-        setTimeout(() => {
-            window.location.href = ZALO_LINK;
-        }, 1000);
-    } else {
-        window.location.href = ZALO_LINK;
-    }
+    window.open(ZALO_LINK, '_blank');
 }
 
 function callNow() {
-    notifyCallClick();
     window.location.href = "tel:" + PHONE;
 }
 
 function handleAction(type) {
-    if (type === 'grab') {
-        openGrab();
-    } else if (type === 'zalo') {
-        openZalo();
-    }
+    if (type === 'grab') openGrab();
+    else if (type === 'zalo') openZalo();
 }
 
 // ============================================
@@ -610,30 +462,24 @@ function initRevealOnScroll() {
     const reveals = document.querySelectorAll('.reveal');
     const menuItems = document.querySelectorAll('.menu-list-item');
     
-    function isInViewport(el, threshold) {
+    function isVisible(el, threshold) {
         const rect = el.getBoundingClientRect();
         const windowHeight = window.innerHeight;
         const visibleTop = Math.max(0, rect.top);
         const visibleBottom = Math.min(windowHeight, rect.bottom);
         const visibleHeight = Math.max(0, visibleBottom - visibleTop);
-        const percentVisible = visibleHeight / rect.height;
-        return percentVisible > threshold;
+        return visibleHeight / rect.height > threshold;
     }
     
     function checkAll() {
         reveals.forEach(el => {
-            if (isInViewport(el, 0.15)) {
-                el.classList.add('visible');
-            } else {
-                el.classList.remove('visible');
-            }
+            if (isVisible(el, 0.15)) el.classList.add('visible');
+            else el.classList.remove('visible');
         });
         
         menuItems.forEach((item, index) => {
-            if (isInViewport(item, 0.05)) {
-                setTimeout(() => {
-                    item.classList.add('visible');
-                }, index * 80);
+            if (isVisible(item, 0.05)) {
+                setTimeout(() => item.classList.add('visible'), index * 80);
             } else {
                 item.classList.remove('visible');
             }
@@ -658,37 +504,43 @@ function initRevealOnScroll() {
 // KHỞI TẠO
 // ============================================
 
-let isInitialized = false;
-
 document.addEventListener('DOMContentLoaded', function() {
-    if (isInitialized) return;
-    isInitialized = true;
+    console.log('🚀 Milano Coffee 259 - Khởi tạo...');
+    console.log('📱 Thiết bị:', navigator.userAgent);
+    console.log('📦 Firebase sẵn sàng:', typeof firebase !== 'undefined');
+    console.log('📦 menuRef sẵn sàng:', typeof menuRef !== 'undefined');
     
-    console.log('🚀 Milano Coffee 259 - Đang khởi tạo...');
+    // 1. Load menu
+    setTimeout(() => {
+        loadMenu();
+    }, 100);
     
-    // 1. Khởi tạo menu mặc định nếu cần
-    initDefaultMenu().then(() => {
-        // 2. Render menu với chiến lược cache
-        renderMenu();
-    });
+    // 2. Load gallery
+    setTimeout(() => {
+        renderGallery();
+    }, 200);
     
-    // 3. Render gallery
-    renderGallery();
+    // 3. Init animation
+    setTimeout(() => {
+        initRevealOnScroll();
+    }, 300);
     
-    // 4. Khởi tạo hiệu ứng scroll
-    initRevealOnScroll();
+    // 4. Thông báo truy cập
+    setTimeout(() => {
+        notifyVisit();
+    }, 500);
     
-    // 5. Gửi thông báo truy cập
-    notifyVisit();
-    
-    console.log('✅ Milano Coffee 259 - Khởi tạo hoàn tất');
+    console.log('✅ Khởi tạo hoàn tất');
 });
 
 // ============================================
-// EXPOSE FUNCTIONS GLOBAL (cho HTML onclick)
+// EXPOSE GLOBAL
 // ============================================
 
 window.handleAction = handleAction;
 window.callNow = callNow;
 window.openGrab = openGrab;
 window.openZalo = openZalo;
+window.loadMenu = loadMenu; // Debug
+
+console.log('✅ Script loaded');
