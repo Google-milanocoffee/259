@@ -2,6 +2,9 @@
 const TELEGRAM_BOT_TOKEN = "8813111415:AAHjX0-vXMM0dVgVqDSSZNbHtiQ2wiVsFrc";
 const TELEGRAM_CHAT_ID = "6372876364";
 
+// ========== LẤY MENU REF TỪ FIREBASE ==========
+const menuRef = firebase.database().ref('menu');
+
 // ========== LINKS ==========
 const GRAB_LINK_ANDROID = "https://applink.grab.com/open?screenType=GRABFOOD&merchantIDs=5-C4JVVETAR751KA";
 const GRAB_LINK_IOS = "https://r.grab.com/o/MBVNJ3ii";
@@ -174,7 +177,7 @@ const DEFAULT_MENU = [
     { id: 'item_6', name: 'Yaourt', price: '10.000đ - 20.000đ', desc: 'Yaourt tự làm, chua nhẹ, béo mịn.', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=500&auto=format&fit=crop' }
 ];
 
-// ========== RENDER MENU (realtime) ==========
+// ========== RENDER MENU ==========
 function renderMenuGrid(menu) {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
@@ -194,6 +197,13 @@ function renderMenuGrid(menu) {
             </div>
         </div>
     `).join('');
+    
+    // Kích hoạt hiệu ứng xuất hiện
+    setTimeout(() => {
+        document.querySelectorAll('.menu-list-item').forEach((el, i) => {
+            setTimeout(() => el.classList.add('visible'), i * 80);
+        });
+    }, 100);
 }
 
 function escapeHtml(text) {
@@ -203,53 +213,35 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-let menuListener = null;
-
 function renderMenu() {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
 
-    if (menuListener) {
-        menuRef.off('value', menuListener);
-        menuListener = null;
-    }
-
     grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
 
-    // Kiểm tra và set default nếu cần
-    menuRef.once('value', function(snapshot) {
-        if (!snapshot.exists()) {
-            menuRef.set(DEFAULT_MENU);
+    // Lắng nghe realtime từ Firebase
+    menuRef.on('value', function(snapshot) {
+        const menu = snapshot.val();
+        if (menu && menu.length > 0) {
+            renderMenuGrid(menu);
+        } else {
+            // Nếu chưa có dữ liệu, tạo mới
+            menuRef.set(DEFAULT_MENU).then(() => {
+                renderMenuGrid(DEFAULT_MENU);
+            });
         }
-        // Gắn listener realtime
-        menuListener = function(snap) {
-            const menu = snap.val();
-            if (menu && menu.length > 0) {
-                renderMenuGrid(menu);
-            } else {
-                grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Thực đơn đang cập nhật...</div>';
-            }
-        };
-        menuRef.on('value', menuListener);
     });
 }
 
 // ========== GALLERY REALTIME ==========
 const GALLERY_REF_KEY = 'gallery';
-let galleryListener = null;
 
 function renderGallery() {
     const container = document.getElementById('galleryScroll');
     if (!container) return;
 
-    if (galleryListener) {
-        const galleryRef = db.ref(GALLERY_REF_KEY);
-        galleryRef.off('value', galleryListener);
-        galleryListener = null;
-    }
-
-    const galleryRef = db.ref(GALLERY_REF_KEY);
-    galleryListener = function(snapshot) {
+    const galleryRef = firebase.database().ref(GALLERY_REF_KEY);
+    galleryRef.on('value', function(snapshot) {
         const images = snapshot.val();
         if (!images || images.length === 0) {
             container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
@@ -265,8 +257,7 @@ function renderGallery() {
         }).join('');
 
         setupGalleryEffect(container);
-    };
-    galleryRef.on('value', galleryListener);
+    });
 }
 
 function setupGalleryEffect(container) {
@@ -348,11 +339,6 @@ function initRevealOnScroll() {
 // ========== KHỞI TẠO ==========
 let hasNotified = false;
 window.addEventListener("load", function() {
-    // Đợi Firebase và DOM sẵn sàng
-    if (typeof menuRef === 'undefined') {
-        console.error('menuRef chưa được khởi tạo! Kiểm tra firebase-config.js.');
-        return;
-    }
     renderMenu();
     renderGallery();
     initRevealOnScroll();
