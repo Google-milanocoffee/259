@@ -5,9 +5,64 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-<title>Milano Coffee 259 Phan Rang | Cà phê chuẩn vị - Đặt Grab</title>
+<title>Milano Coffee 259 Phan Rang - Cà phê, Trà sữa, Đồ uống | Đặt Grab giao tận nơi</title>
 
-<meta name="description" content="Milano Coffee 259 Phan Rang - hơn 10 năm giữ vị cà phê Milano. Đặt Grab giao tận nơi, menu đa dạng, giá hợp lý." />
+<meta name="description" content="Milano Coffee 259 Phan Rang - Thương hiệu cà phê nhượng quyền toàn quốc. Chuyên cà phê, trà sữa, matcha, nước trái cây, yaourt tại 259 Ngô Gia Tự, Phan Rang, Ninh Thuận. Đặt Grab giao tận nơi." />
+<meta name="keywords" content="cà phê Phan Rang, trà sữa Ninh Thuận, đồ uống Phan Rang, Milano Coffee, cà phê nhượng quyền, grab food Phan Rang, cafe 259 Ngô Gia Tự, đồ uống giải khát, matcha, bạc xỉu" />
+<meta name="robots" content="index, follow" />
+<meta name="geo.region" content="VN-36" />
+<meta name="geo.placename" content="Phan Rang, Ninh Thuận" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:title" content="Milano Coffee 259 Phan Rang - Cà phê, Trà sữa, Đồ uống | Đặt Grab" />
+<meta property="og:description" content="Thương hiệu cà phê nhượng quyền toàn quốc. Cà phê, trà sữa, matcha, nước trái cây tại 259 Ngô Gia Tự, Phan Rang. Đặt Grab giao tận nơi." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://milanocoffee259.com" />
+<meta property="og:image" content="https://milanocoffee.com.vn/wp-content/themes/main2022/img/milano-logo.svg" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Milano Coffee 259 Phan Rang - Cà phê, Trà sữa, Đồ uống" />
+<meta name="twitter:description" content="Thương hiệu cà phê nhượng quyền toàn quốc. Đặt Grab giao tận nơi." />
+
+<!-- Structured Data (JSON-LD) -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "CafeOrCoffeeShop",
+    "name": "Milano Coffee 259",
+    "description": "Chi nhánh Milano Coffee tại Phan Rang, Ninh Thuận. Chuyên cà phê, trà sữa, matcha, nước trái cây, yaourt.",
+    "url": "https://milanocoffee259.com",
+    "telephone": "+84937513139",
+    "email": "",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "259 Ngô Gia Tự (gần bánh canh Nhường)",
+        "addressLocality": "Phan Rang",
+        "addressRegion": "Ninh Thuận",
+        "addressCountry": "VN"
+    },
+    "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 11.564652532386551,
+        "longitude": 108.99499208002565
+    },
+    "openingHoursSpecification": [
+        {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+            "opens": "05:30",
+            "closes": "16:30"
+        }
+    ],
+    "servesCuisine": ["Cà phê", "Trà sữa", "Matcha", "Nước trái cây", "Yaourt", "Đồ uống giải khát"],
+    "parentOrganization": {
+        "@type": "Organization",
+        "name": "Milano Coffee",
+        "url": "https://milanocoffee.com.vn"
+    }
+}
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,15 +71,19 @@
 
 <link rel="stylesheet" href="style.css">
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 </head>
 
 <body>
 
-<!-- HERO -->
-<section class="hero">
+<!-- HERO - gọn nhẹ -->
+<section class="hero" aria-label="Giới thiệu Milano Coffee 259">
 
     <div class="hero-bg">
-        <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1400&auto=format&fit=crop">
+        <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1400&auto=format&fit=crop" alt="Milano Coffee" loading="eager">
     </div>
 
     <div class="hero-overlay"></div>
@@ -33,210 +92,169 @@
 
         <img class="logo"
              src="https://milanocoffee.com.vn/wp-content/themes/main2022/img/milano-logo.svg"
-             alt="Milano Coffee">
+             alt="Milano Coffee"
+             width="140" height="auto">
 
-        <div class="badge">
-            <p>
-                ☕ Milano Coffee 259 – hơn 10 năm tại Ninh Thuận giữ đúng 1 vị quen thuộc.<br>
-                Uống tại quán hay đặt Grab, gu vẫn vậy 😌
-            </p>
-        </div>
-
-        <h1>BRO đang cần gọi đồ uống đúng không? 👀</h1>
+        <h1>Milano Coffee 259</h1>
 
         <div class="hero-text">
-            Bạn dám đặt – tụi mình dám pha ☕<br>
-            Grab giao liền tận tay 🛵<br><br>
+            Cà phê &bull; Trà sữa &bull; Matcha &bull; Nước trái cây &bull; Yaourt
         </div>
 
-        <div class="hero-buttons">
-
-            <button class="btn btn-grab" onclick="handleAction('grab')">
-                🛵 MỞ GRAB COI MENU NHAAAA
-            </button>
-
-            <button class="btn btn-zalo" onclick="handleAction('zalo')">
-                💬 CHAT ZALO
-            </button>
-
-            <button class="btn btn-call" onclick="callNow()">
-                📞 0937 513 139
-            </button>
-
-        </div>
-
-        <div class="quote">
-            “Có Grab rồi thì tiện lắm 😌<br>
-            Có khi còn rẻ hơn mua tại quán nữa đó 👀”
+        <div class="hero-badge">
+            <span>Thương hiệu nhượng quyền toàn quốc</span>
         </div>
 
     </div>
 
 </section>
 
-<section class="section">
+<!-- GALLERY ẢNH QUÁN - dạng TikTok cuộn ngang -->
+<section class="section section-compact reveal reveal-left" aria-label="Hình ảnh quán">
     <div class="container">
+
+        <div class="section-title-sm">
+            Hình ảnh quán
+        </div>
+
+        <div class="gallery-scroll" id="galleryScroll">
+            <!-- Render từ JavaScript -->
+        </div>
+
+    </div>
+</section>
+
+<!-- MENU - lên trên cùng -->
+<section class="section reveal reveal-right" aria-label="Thực đơn">
+    <div class="container">
+
         <div class="section-title">
-            Món khách hay đặt 👀
+            Thực đơn
         </div>
 
-        <div class="section-desc">
-            ☕ Milano Coffee 259 – hơn 10 năm pha cà phê cho người Phan Rang<br>
-            Gu vẫn vậy, chỉ là nay lên Grab cho tiện 😌
+        <div class="menu-grid" id="menuGrid">
+            <!-- Render từ JavaScript -->
         </div>
 
-        <div class="menu-grid">
-            <!-- Card 1 - Cà phê Milano -->
-            <div class="card menu-card">
-                <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop" alt="Cà phê Milano">
-                <div class="card-content">
-                    <h3>Cà phê Milano ☕</h3>
-                    <p>Combo tỉnh ngủ quốc dân 😌</p>
-                </div>
-            </div>
-
-            <!-- Card 2 - Bạc xỉu -->
-            <div class="card menu-card">
-                <img src="https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=500&auto=format&fit=crop" alt="Bạc xỉu">
-                <div class="card-content">
-                    <h3>Bạc xỉu 🥛</h3>
-                    <p>Ngọt nhẹ, chill nhẹ, tỉnh nhẹ 👀</p>
-                </div>
-            </div>
-
-            <!-- Card 3 - Matcha -->
-            <div class="card menu-card">
-                <img src="https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=500&auto=format&fit=crop" alt="Matcha">
-                <div class="card-content">
-                    <h3>Matcha 💚</h3>
-                    <p>Xanh mát, không toxic 😌</p>
-                </div>
-            </div>
-
-            <!-- Card 4 - Trà -->
-            <div class="card menu-card">
-                <img src="https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500&auto=format&fit=crop" alt="Trà">
-                <div class="card-content">
-                    <h3>Trà 🍃</h3>
-                    <p>Uống là mát người, mát mood ✨</p>
-                </div>
-            </div>
-
-            <!-- Card 5 - Nước trái cây -->
-            <div class="card menu-card">
-                <img src="https://images.unsplash.com/photo-1543364195-bfe6e4932397?q=80&w=500&auto=format&fit=crop" alt="Nước trái cây">
-                <div class="card-content">
-                    <h3>Nước trái cây 🍊</h3>
-                    <p>Fresh thiệt, không phải nói 😎</p>
-                </div>
-            </div>
-
-            <!-- Card 6 - Yaourt -->
-            <div class="card menu-card">
-                <img src="https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=500&auto=format&fit=crop" alt="Yaourt">
-                <div class="card-content">
-                    <h3>Yaourt 🥄</h3>
-                    <p>Chua nhẹ thôi, ghiền là chính 🤤</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- CTA BUTTON -->
         <div class="menu-cta">
             <button class="btn btn-grab" onclick="handleAction('grab')">
-                🛵 Xem menu chi tiết tại Grab nhé 🚀
+                Xem thực đơn trên Grab
             </button>
         </div>
+
+    </div>
+</section>
+
+<!-- GRAB TRUST - ảnh Trứ Danh -->
+<section class="section section-compact reveal reveal-left" aria-label="Danh tiếng trên Grab">
+    <div class="container">
+
+        <div class="section-title-sm">
+            &#9733; Quán Trứ Danh trên GrabFood
+        </div>
+
+        <div class="trust-card" onclick="handleAction('grab')" style="cursor:pointer;" role="button" tabindex="0" aria-label="Đặt đồ uống qua Grab">
+            <img
+                src="https://raw.githubusercontent.com/Google-milanocoffee/259/main/anh/z7996765141710_0ef741eea1d5757f329a1b18e30b41c5.jpg"
+                alt="Milano Coffee 259 - Quán Trứ Danh trên GrabFood"
+                loading="lazy"
+                width="1017"
+                height="375"
+            />
+        </div>
+
+    </div>
+</section>
+
+<!-- ABOUT - ngắn gọn -->
+<section class="section section-compact reveal reveal-right" aria-label="Về Milano Coffee 259">
+    <div class="container">
+
+        <div class="section-title-sm">
+            Về Milano Coffee 259
+        </div>
+
+        <div class="info-card">
+            <div class="info-item">
+                Milano Coffee là chuỗi cà phê nhượng quyền nổi tiếng toàn quốc. Chi nhánh <strong>259 Phan Rang, Ninh Thuận</strong> phục vụ <strong>cà phê, trà sữa, matcha, nước trái cây, yaourt</strong> đúng chuẩn thương hiệu.
+            </div>
+            <div class="info-item">
+                Đã có mặt trên <strong>GrabFood</strong> để bạn đặt hàng giao tận nơi.
+            </div>
+        </div>
+
     </div>
 </section>
 
 <!-- CONTACT -->
-<section class="section">
-
+<section class="section section-compact reveal reveal-left" aria-label="Liên hệ">
     <div class="container">
 
-        <div class="section-title">
-            Liên hệ 📍
+        <div class="section-title-sm">
+            Liên hệ
         </div>
 
         <div class="info-card">
 
-            <div class="info-item">
-                📍 259 Ngô Gia Tự - Phan Rang - Ninh Thuận
+            <div class="info-row">
+                <span class="info-label">Địa chỉ</span>
+                <span>259 Ngô Gia Tự, Phan Rang, Ninh Thuận (gần bánh canh Nhường)</span>
             </div>
 
-            <div class="info-item">
-                📞 0937 513 139
+            <div class="info-row">
+                <span class="info-label">Chỉ đường</span>
+                <a class="direction-link" href="https://maps.google.com/maps?daddr=11.564652532386551,108.99499208002565" target="_blank" rel="noopener">
+                    <span class="direction-icon">&#128205;</span> Mở Google Maps
+                </a>
             </div>
 
-            <div class="info-item">
-                ☕ Milano Coffee 259
+            <div class="info-row">
+                <span class="info-label">Điện thoại</span>
+                <a href="tel:0937513139">0937 513 139</a>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Giờ mở cửa</span>
+                <span>05:30 &ndash; 16:30</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Fanpage</span>
+                <span>Milano Coffee 259</span>
             </div>
 
             <div class="map">
                 <iframe
-                    src="https://maps.google.com/maps?q=11.55628,108.99762&z=16&output=embed"
+                    src="https://maps.google.com/maps?q=11.564652532386551,108.99499208002565&z=16&output=embed"
                     loading="lazy"
-                    allowfullscreen>
+                    allowfullscreen
+                    title="Bản đồ Milano Coffee 259">
                 </iframe>
             </div>
 
         </div>
 
     </div>
-
 </section>
 
 <div class="footer-space"></div>
 
 <!-- STICKY -->
-<div class="sticky">
+<div class="sticky" aria-label="Liên hệ nhanh">
     <div class="sticky-wrap">
 
-        <button class="sticky-btn sticky-grab" onclick="handleAction('grab')">
-            🛵 ĐẶT GRAB ĐI BROOO
+        <button class="sticky-btn sticky-grab" onclick="handleAction('grab')" aria-label="Đặt đồ uống qua Grab">
+            ĐẶT QUA GRAB
         </button>
 
-        <button class="sticky-btn sticky-zalo" onclick="handleAction('zalo')">
-            💬 CHAT ZALO
+        <button class="sticky-btn sticky-zalo" onclick="handleAction('zalo')" aria-label="Chat Zalo">
+            CHAT ZALO
         </button>
 
     </div>
 </div>
 
-<!-- POPUP -->
-<div class="popup" id="popup">
-    <div class="popup-box">
-
-        <div class="popup-title" id="popupTitle"></div>
-        <div class="popup-distance" id="popupDistance"></div>
-        <div class="popup-text" id="popupText"></div>
-
-        <div class="popup-buttons">
-
-            <button class="popup-btn popup-grab" onclick="openGrab()">
-                🛵 MỞ GRAB
-            </button>
-
-            <button class="popup-btn popup-zalo" onclick="openZalo()">
-                💬 CHAT ZALO
-            </button>
-
-            <button class="popup-btn popup-close" onclick="closePopup()">
-                Đóng
-            </button>
-
-        </div>
-
-    </div>
-</div>
-
-<!-- LOADING -->
-<div class="loading" id="loading">
-    <div class="loader"></div>
-    <p>📍 Đang xem bạn gần quán hay nên gọi Grab 😌</p>
-</div>
-
+<script src="firebase-config.js"></script>
 <script src="script.js"></script>
 
 </body>

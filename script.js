@@ -187,14 +187,8 @@ function callNow() {
     window.location.href = "tel:" + PHONE;
 }
 
-// ========== POPUP ==========
-function closePopup() {
-    const popup = document.getElementById("popup");
-    if (popup) popup.classList.remove("show");
-}
-
+// ========== HANDLE ACTION ==========
 function handleAction(type) {
-    closePopup();
     if (type === 'grab') {
         openGrab();
     } else if (type === 'zalo') {
@@ -202,9 +196,302 @@ function handleAction(type) {
     }
 }
 
+// ========== MENU DYNAMIC - FIREBASE ==========
+const DEFAULT_MENU = [
+    {
+        id: 'item_1',
+        name: 'Cà phê Milano',
+        price: '15.000đ - 25.000đ',
+        desc: 'Cà phê đậm vị, pha theo công thức gia truyền.',
+        image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_2',
+        name: 'Bạc xỉu',
+        price: '15.000đ - 25.000đ',
+        desc: 'Vị ngọt nhẹ, béo thơm, phù hợp cho người mới uống cà phê.',
+        image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_3',
+        name: 'Matcha',
+        price: '20.000đ - 30.000đ',
+        desc: 'Bột matcha nhập khẩu, xanh mát, thanh nhẹ.',
+        image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_4',
+        name: 'Trà',
+        price: '15.000đ - 25.000đ',
+        desc: 'Trà tươi nguyên lá, hương vị tự nhiên, giải nhiệt.',
+        image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_5',
+        name: 'Nước trái cây',
+        price: '20.000đ - 35.000đ',
+        desc: 'Ép tươi từ trái cây theo mùa, giàu vitamin.',
+        image: 'https://images.unsplash.com/photo-1543364195-bfe6e4932397?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_6',
+        name: 'Yaourt',
+        price: '10.000đ - 20.000đ',
+        desc: 'Yaourt tự làm, chua nhẹ, béo mịn.',
+        image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=500&auto=format&fit=crop'
+    }
+];
+
+// Cache key
+const CACHE_KEY = 'milano_menu_cache';
+const CACHE_TIME_KEY = 'milano_menu_cache_time';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 giờ
+
+// Khởi tạo menu mặc định lên Firebase nếu chưa có
+function initDefaultMenu() {
+    menuRef.once('value').then(snapshot => {
+        if (!snapshot.exists()) {
+            menuRef.set(DEFAULT_MENU);
+        }
+    });
+}
+
+// Lưu menu vào localStorage cache
+function cacheMenu(menu) {
+    try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(menu));
+        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+    } catch(e) {
+        // localStorage đầy hoặc không hỗ trợ - bỏ qua
+    }
+}
+
+// Lấy menu từ cache
+function getCachedMenu() {
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
+        
+        if (cached && cacheTime) {
+            const age = Date.now() - parseInt(cacheTime);
+            if (age < CACHE_DURATION) {
+                return JSON.parse(cached);
+            }
+        }
+    } catch(e) {
+        // ignore
+    }
+    return null;
+}
+
+// Render menu dạng danh sách (giống Grab)
+function renderMenuGrid(menu) {
+    const grid = document.getElementById('menuGrid');
+    if (!grid) return;
+    
+    if (!menu || menu.length === 0) {
+        grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Thực đơn đang cập nhật...</div>';
+        return;
+    }
+    
+    grid.innerHTML = menu.map(item => `
+        <div class="menu-list-item">
+            <div class="menu-list-img">
+                <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/200?text=Milano'" />
+            </div>
+            <div class="menu-list-info">
+                <div class="menu-list-name">${escapeHtml(item.name)}</div>
+                <div class="menu-list-desc">${escapeHtml(item.desc)}</div>
+                <div class="menu-list-price">${escapeHtml(item.price)}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render menu: ưu tiên cache, đồng thời lắng nghe Firebase realtime
+function renderMenu() {
+    const grid = document.getElementById('menuGrid');
+    if (!grid) return;
+    
+    // Bước 1: Hiển thị cache ngay lập tức (nếu có)
+    const cached = getCachedMenu();
+    if (cached) {
+        renderMenuGrid(cached);
+    } else {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
+    }
+    
+    // Bước 2: Lắng nghe Firebase realtime để cập nhật
+    // Dùng once để tránh lắng nghe liên tục (tiết kiệm băng thông)
+    menuRef.once('value', snapshot => {
+        const menu = snapshot.val();
+        
+        if (menu && menu.length > 0) {
+            // Lưu vào cache
+            cacheMenu(menu);
+            // Render lại nếu dữ liệu khác với cache
+            const cachedStr = JSON.stringify(cached);
+            const freshStr = JSON.stringify(menu);
+            if (cachedStr !== freshStr) {
+                renderMenuGrid(menu);
+            }
+        } else if (!cached) {
+            renderMenuGrid(null);
+        }
+    });
+}
+
+// ========== GALLERY ẢNH QUÁN ==========
+const GALLERY_REF_KEY = 'gallery';
+
+function renderGallery() {
+    const container = document.getElementById('galleryScroll');
+    if (!container) return;
+
+    const galleryRef = db.ref(GALLERY_REF_KEY);
+    galleryRef.once('value', function(snapshot) {
+        const images = snapshot.val();
+        if (!images || images.length === 0) {
+            container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
+            return;
+        }
+        container.innerHTML = images.map(function(url) {
+            return '<div class="gallery-item">' +
+                '<div class="gallery-item-inner">' +
+                '<img src="' + url + '" alt="Hình ảnh quán" loading="lazy" onerror="this.parentElement.style.display=\'none\'" />' +
+                '<div class="gallery-item-caption">&#10003; Milano Coffee 259</div>' +
+                '</div>' +
+                '</div>';
+        }).join('');
+
+        // Hiệu ứng vuốt mượt: scale/opacity các ảnh phụ
+        setupGalleryEffect(container);
+    });
+}
+
+function setupGalleryEffect(container) {
+    var items = container.querySelectorAll('.gallery-item');
+    if (items.length === 0) return;
+
+    function updateGallery() {
+        var containerRect = container.getBoundingClientRect();
+        var centerX = containerRect.left + containerRect.width / 2;
+
+        items.forEach(function(item) {
+            var itemRect = item.getBoundingClientRect();
+            var itemCenter = itemRect.left + itemRect.width / 2;
+            var dist = Math.abs(centerX - itemCenter);
+            var maxDist = containerRect.width * 0.8;
+
+            // Tính scale: 1.0 ở trung tâm, 0.85 ở xa
+            var factor = Math.max(0, 1 - (dist / maxDist) * 0.15);
+            // Opacity: 1 ở trung tâm, 0.5 ở xa
+            var opacity = Math.max(0.5, 1 - (dist / maxDist) * 0.5);
+
+            var inner = item.querySelector('.gallery-item-inner');
+            if (inner) {
+                inner.style.transform = 'scale(' + factor + ')';
+                inner.style.opacity = opacity;
+            }
+        });
+    }
+
+    // Dùng requestAnimationFrame cho mượt
+    var ticking = false;
+    container.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(function() {
+                updateGallery();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+
+    // Cập nhật lần đầu
+    updateGallery();
+}
+
+// Helper: chống XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ========== REVEAL KHI SCROLL DỌC (dạng sóng, 2 chiều) ==========
+function initRevealOnScroll() {
+    var reveals = document.querySelectorAll('.reveal');
+    var menuItems = document.querySelectorAll('.menu-list-item');
+    
+    function isInViewport(el, threshold) {
+        var rect = el.getBoundingClientRect();
+        var windowHeight = window.innerHeight;
+        var windowWidth = window.innerWidth;
+        
+        // Tính % chiều cao phần tử đang trong viewport
+        var visibleTop = Math.max(0, rect.top);
+        var visibleBottom = Math.min(windowHeight, rect.bottom);
+        var visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        var percentVisible = visibleHeight / rect.height;
+        
+        return {
+            visible: percentVisible > threshold,
+            percent: percentVisible,
+            fromTop: rect.top < windowHeight && rect.bottom > 0,
+            rect: rect
+        };
+    }
+    
+    function checkAll() {
+        // Check sections
+        reveals.forEach(function(el) {
+            var v = isInViewport(el, 0.15);
+            if (v.visible) {
+                el.classList.add('visible');
+            } else {
+                el.classList.remove('visible');
+            }
+        });
+        
+        // Check menu items với stagger
+        menuItems.forEach(function(item, index) {
+            var v = isInViewport(item, 0.05);
+            if (v.visible) {
+                // Stagger delay theo thứ tự
+                var delay = index * 80;
+                setTimeout(function() {
+                    item.classList.add('visible');
+                }, delay);
+            } else {
+                item.classList.remove('visible');
+            }
+        });
+    }
+
+    var ticking = false;
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(function() {
+                checkAll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+    
+    checkAll();
+}
+
 // ========== KHỞI TẠO ==========
 let hasNotified = false;
 window.addEventListener("load", function() {
+    initDefaultMenu();
+    renderMenu();
+    renderGallery();
+    initRevealOnScroll();
+    
     if (!hasNotified) {
         hasNotified = true;
         notifyVisit();
