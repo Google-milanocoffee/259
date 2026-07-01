@@ -1,262 +1,441 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
 <title>Milano Coffee 259 Phan Rang - Cà phê, Trà sữa, Đồ uống | Đặt Grab giao tận nơi</title>
-
 <meta name="description" content="Milano Coffee 259 Phan Rang - Thương hiệu cà phê nhượng quyền toàn quốc. Chuyên cà phê, trà sữa, matcha, nước trái cây, yaourt tại 259 Ngô Gia Tự, Phan Rang, Ninh Thuận. Đặt Grab giao tận nơi." />
-<meta name="keywords" content="cà phê Phan Rang, trà sữa Ninh Thuận, đồ uống Phan Rang, Milano Coffee, cà phê nhượng quyền, grab food Phan Rang, cafe 259 Ngô Gia Tự, đồ uống giải khát, matcha, bạc xỉu" />
-<meta name="google-site-verification" content="iMld1riFakokYTteWxZtQCPpzjsJtez56WEU6Cbd9NA" />
-<meta name="robots" content="index, follow" />
-<meta name="geo.region" content="VN-36" />
-<meta name="geo.placename" content="Phan Rang, Ninh Thuận" />
-
-<!-- Open Graph / Facebook -->
-<meta property="og:title" content="Milano Coffee 259 Phan Rang - Cà phê, Trà sữa, Đồ uống | Đặt Grab" />
-<meta property="og:description" content="Thương hiệu cà phê nhượng quyền toàn quốc. Cà phê, trà sữa, matcha, nước trái cây tại 259 Ngô Gia Tự, Phan Rang. Đặt Grab giao tận nơi." />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://milanocoffee259.com" />
-<meta property="og:image" content="https://milanocoffee.com.vn/wp-content/themes/main2022/img/milano-logo.svg" />
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Milano Coffee 259 Phan Rang - Cà phê, Trà sữa, Đồ uống" />
-<meta name="twitter:description" content="Thương hiệu cà phê nhượng quyền toàn quốc. Đặt Grab giao tận nơi." />
-
-<!-- Structured Data (JSON-LD) -->
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "CafeOrCoffeeShop",
-    "name": "Milano Coffee 259",
-    "description": "Chi nhánh Milano Coffee tại Phan Rang, Ninh Thuận. Chuyên cà phê, trà sữa, matcha, nước trái cây, yaourt.",
-    "url": "https://milanocoffee259.com",
-    "telephone": "+84937513139",
-    "email": "",
-    "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "259 Ngô Gia Tự (gần bánh canh Nhường)",
-        "addressLocality": "Phan Rang",
-        "addressRegion": "Ninh Thuận",
-        "addressCountry": "VN"
-    },
-    "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 11.564652532386551,
-        "longitude": 108.99499208002565
-    },
-    "openingHoursSpecification": [
-        {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
-            "opens": "05:30",
-            "closes": "16:30"
-        }
-    ],
-    "servesCuisine": ["Cà phê", "Trà sữa", "Matcha", "Nước trái cây", "Yaourt", "Đồ uống giải khát"],
-    "parentOrganization": {
-        "@type": "Organization",
-        "name": "Milano Coffee",
-        "url": "https://milanocoffee.com.vn"
-    }
-}
-</script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="style.css">
+<style>
+:root{--bg:#0f0f0f;--card:#1a1a1a;--text:#ffffff;--sub:#c2c2c2;--green:#00b14f;--blue:#0A84FF;--line:#2c2c2c}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden;width:100%;max-width:100%}
+.reveal{opacity:0;transition:opacity 0.7s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94)}
+.reveal-left{transform:translateX(-60px)}
+.reveal-right{transform:translateX(60px)}
+.reveal.visible{opacity:1;transform:translateX(0)}
+body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;overflow-x:hidden;width:100%;max-width:100%}
+img{width:100%;display:block}
+button{font-family:'Montserrat',sans-serif}
+.container{width:100%;max-width:540px;margin:auto;padding:16px}
+.hero{position:relative;min-height:auto;padding:30px 0 40px;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0}
+.hero-bg img{width:100%;height:100%;object-fit:cover;filter:brightness(.3)}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.2),rgba(0,0,0,.9))}
+.hero-content{position:relative;z-index:2;text-align:center}
+.logo{width:120px;background:#fff;padding:4px;margin:0 auto 14px;border-radius:4px}
+h1{font-size:32px;line-height:1.1;margin-bottom:10px;font-weight:800}
+.hero-text{color:#ebebeb;margin-bottom:14px;font-size:14px;font-weight:500;letter-spacing:0.3px}
+.hero-badge{display:inline-block;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);font-size:11px;color:#ccc;letter-spacing:0.5px}
+.section{padding:40px 0}
+.section-compact{padding:24px 0}
+.section-title{font-size:24px;margin-bottom:16px;font-weight:800}
+.section-title-sm{font-size:16px;margin-bottom:14px;font-weight:700;color:var(--sub);letter-spacing:0.3px}
+.gallery-scroll{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:12px 0;scrollbar-width:none;scroll-padding:0 50%}
+.gallery-scroll::-webkit-scrollbar{display:none}
+.gallery-item{flex:0 0 70%;scroll-snap-align:center;padding:0 6px}
+.gallery-item-inner{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;transition:transform 0.3s, opacity 0.3s}
+.gallery-item img{width:100%;height:400px;object-fit:cover;display:block}
+.gallery-item-caption{padding:12px 14px 14px;font-size:13px;color:var(--sub);line-height:1.4;font-weight:500;text-align:center}
+.gallery-empty{width:100%;text-align:center;padding:40px 0;color:var(--sub);font-size:14px}
+.price{color:var(--green);font-weight:700;font-size:14px;margin-bottom:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;margin-bottom:18px}
+.card img{height:240px;object-fit:cover}
+.card-content{padding:18px}
+.card-content h3{margin-bottom:8px;font-size:18px}
+.card-content p{line-height:1.7;color:var(--sub)}
+.info-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 20px}
+.info-item{margin-bottom:14px;line-height:1.7;font-size:14px;color:var(--sub)}
+.info-item strong{color:var(--text)}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;gap:12px}
+.info-row:last-of-type{border-bottom:none}
+.info-label{color:var(--sub);font-size:12px;font-weight:600;flex-shrink:0}
+.info-row a{color:var(--blue);text-decoration:none;font-weight:600}
+.info-row span:last-child{text-align:right;color:var(--text)}
+.map{margin-top:16px;overflow:hidden;border-radius:16px;border:1px solid var(--line)}
+.map iframe{width:100%;height:220px;border:none}
+.menu-grid{display:flex;flex-direction:column;gap:12px}
+.menu-list-item{display:flex;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;align-items:center;opacity:0;transform:translateX(-40px);transition:opacity 0.5s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94)}
+.menu-list-item.visible{opacity:1;transform:translateX(0)}
+.menu-list-item:active{transform:scale(0.98)}
+.menu-list-img{width:80px;height:80px;flex-shrink:0;border-radius:12px;overflow:hidden}
+.menu-list-img img{width:100%;height:100%;object-fit:cover;aspect-ratio:1/1}
+.menu-list-info{flex:1;min-width:0}
+.menu-list-name{font-size:15px;font-weight:700;margin-bottom:3px}
+.menu-list-desc{font-size:12px;color:var(--sub);line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.menu-list-price{font-size:14px;font-weight:700;color:var(--green)}
+.menu-cta{text-align:center;margin-top:24px}
+.btn{border:none;border-radius:999px;padding:14px 24px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;display:inline-block}
+.btn:active{transform:scale(.97)}
+.btn-grab{background:var(--green);color:#fff;box-shadow:0 8px 24px rgba(0,177,79,.3)}
+.trust-card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;padding:10px;transition:transform 0.2s}
+.trust-card:active{transform:scale(0.98)}
+.trust-card img{width:100%;height:auto;border-radius:14px;display:block}
+.direction-link{color:var(--blue);text-decoration:none;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:4px;padding:6px 14px;background:rgba(10,132,255,0.1);border-radius:999px;transition:background 0.2s}
+.direction-link:hover{background:rgba(10,132,255,0.2)}
+.direction-icon{font-size:16px}
+.sticky{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(15,15,15,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 12px;padding-bottom:calc(8px + env(safe-area-inset-bottom, 8px))}
+.sticky-wrap{max-width:540px;margin:0 auto;display:flex;gap:8px}
+.sticky-btn{flex:1;min-width:0;border:none;border-radius:10px;padding:12px 6px;font-size:12px;font-weight:700;cursor:pointer;transition:transform 0.2s, opacity 0.2s;text-align:center;letter-spacing:0.3px;white-space:nowrap}
+.sticky-btn:active{transform:scale(0.97)}
+.sticky-grab{background:var(--green);color:#fff;box-shadow:0 4px 16px rgba(0,177,79,.3)}
+.sticky-zalo{background:#0068FF;color:#fff;box-shadow:0 4px 16px rgba(0,104,255,.2)}
+.footer-space{height:72px}
+@media(max-width:420px){h1{font-size:26px}.logo{width:100px}.menu-grid{gap:10px}.menu-list-item{padding:10px;gap:12px}.menu-list-img{width:64px;height:64px}.menu-list-name{font-size:14px}.menu-list-desc{font-size:11px}.menu-list-price{font-size:13px}.info-row{flex-direction:column;align-items:flex-start;gap:4px}.info-row span:last-child{text-align:left}}
+</style>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 </head>
-
 <body>
 
-<!-- HERO - gọn nhẹ -->
-<section class="hero" aria-label="Giới thiệu Milano Coffee 259">
-
+<!-- HERO -->
+<section class="hero">
     <div class="hero-bg">
         <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1400&auto=format&fit=crop" alt="Milano Coffee" loading="eager">
     </div>
-
     <div class="hero-overlay"></div>
-
     <div class="container hero-content">
-
-        <img class="logo"
-             src="https://milanocoffee.com.vn/wp-content/themes/main2022/img/milano-logo.svg"
-             alt="Milano Coffee"
-             width="140" height="auto">
-
+        <img class="logo" src="https://milanocoffee.com.vn/wp-content/themes/main2022/img/milano-logo.svg" alt="Milano Coffee" width="140" height="auto">
         <h1>Milano Coffee 259</h1>
-
-        <div class="hero-text">
-            Cà phê &bull; Trà sữa &bull; Matcha &bull; Nước trái cây &bull; Yaourt
-        </div>
-
-        <div class="hero-badge">
-            <span>Thương hiệu nhượng quyền toàn quốc</span>
-        </div>
-
-    </div>
-
-</section>
-
-<!-- GALLERY ẢNH QUÁN - dạng TikTok cuộn ngang -->
-<section class="section section-compact reveal reveal-left" aria-label="Hình ảnh quán">
-    <div class="container">
-
-        <div class="section-title-sm">
-            Hình ảnh quán
-        </div>
-
-        <div class="gallery-scroll" id="galleryScroll">
-            <!-- Render từ JavaScript -->
-        </div>
-
+        <div class="hero-text">Cà phê &bull; Trà sữa &bull; Matcha &bull; Nước trái cây &bull; Yaourt</div>
+        <div class="hero-badge"><span>Thương hiệu nhượng quyền toàn quốc</span></div>
     </div>
 </section>
 
-<!-- MENU - lên trên cùng -->
-<section class="section reveal reveal-right" aria-label="Thực đơn">
+<!-- GALLERY -->
+<section class="section section-compact reveal reveal-left">
     <div class="container">
+        <div class="section-title-sm">Hình ảnh quán</div>
+        <div class="gallery-scroll" id="galleryScroll"></div>
+    </div>
+</section>
 
-        <div class="section-title">
-            Thực đơn
-        </div>
-
-        <div class="menu-grid" id="menuGrid">
-            <!-- Render từ JavaScript -->
-        </div>
-
+<!-- MENU -->
+<section class="section reveal reveal-right">
+    <div class="container">
+        <div class="section-title">Thực đơn</div>
+        <div class="menu-grid" id="menuGrid"></div>
         <div class="menu-cta">
-            <button class="btn btn-grab" onclick="handleAction('grab')">
-                Xem thực đơn trên Grab
-            </button>
+            <button class="btn btn-grab" onclick="handleAction('grab')">Xem thực đơn trên Grab</button>
         </div>
-
     </div>
 </section>
 
-<!-- GRAB TRUST - ảnh Trứ Danh -->
-<section class="section section-compact reveal reveal-left" aria-label="Danh tiếng trên Grab">
+<!-- GRAB TRUST -->
+<section class="section section-compact reveal reveal-left">
     <div class="container">
-
-        <div class="section-title-sm">
-            &#9733; Quán Trứ Danh trên GrabFood
+        <div class="section-title-sm">&#9733; Quán Trứ Danh trên GrabFood</div>
+        <div class="trust-card" onclick="handleAction('grab')" style="cursor:pointer;" role="button" tabindex="0">
+            <img src="https://raw.githubusercontent.com/Google-milanocoffee/259/main/anh/z7996765141710_0ef741eea1d5757f329a1b18e30b41c5.jpg" alt="Milano Coffee 259 - Quán Trứ Danh trên GrabFood" loading="lazy" />
         </div>
-
-        <div class="trust-card" onclick="handleAction('grab')" style="cursor:pointer;" role="button" tabindex="0" aria-label="Đặt đồ uống qua Grab">
-            <img
-                src="https://raw.githubusercontent.com/Google-milanocoffee/259/main/anh/z7996765141710_0ef741eea1d5757f329a1b18e30b41c5.jpg"
-                alt="Milano Coffee 259 - Quán Trứ Danh trên GrabFood"
-                loading="lazy"
-                width="1017"
-                height="375"
-            />
-        </div>
-
     </div>
 </section>
 
-<!-- ABOUT - ngắn gọn -->
-<section class="section section-compact reveal reveal-right" aria-label="Về Milano Coffee 259">
+<!-- ABOUT -->
+<section class="section section-compact reveal reveal-right">
     <div class="container">
-
-        <div class="section-title-sm">
-            Về Milano Coffee 259
-        </div>
-
+        <div class="section-title-sm">Về Milano Coffee 259</div>
         <div class="info-card">
-            <div class="info-item">
-                Milano Coffee là chuỗi cà phê nhượng quyền nổi tiếng toàn quốc. Chi nhánh <strong>259 Phan Rang, Ninh Thuận</strong> phục vụ <strong>cà phê, trà sữa, matcha, nước trái cây, yaourt</strong> đúng chuẩn thương hiệu.
-            </div>
-            <div class="info-item">
-                Đã có mặt trên <strong>GrabFood</strong> để bạn đặt hàng giao tận nơi.
-            </div>
+            <div class="info-item">Milano Coffee là chuỗi cà phê nhượng quyền nổi tiếng toàn quốc. Chi nhánh <strong>259 Phan Rang, Ninh Thuận</strong> phục vụ <strong>cà phê, trà sữa, matcha, nước trái cây, yaourt</strong> đúng chuẩn thương hiệu.</div>
+            <div class="info-item">Đã có mặt trên <strong>GrabFood</strong> để bạn đặt hàng giao tận nơi.</div>
         </div>
-
     </div>
 </section>
 
 <!-- CONTACT -->
-<section class="section section-compact reveal reveal-left" aria-label="Liên hệ">
+<section class="section section-compact reveal reveal-left">
     <div class="container">
-
-        <div class="section-title-sm">
-            Liên hệ
-        </div>
-
+        <div class="section-title-sm">Liên hệ</div>
         <div class="info-card">
-
-            <div class="info-row">
-                <span class="info-label">Địa chỉ</span>
-                <span>259 Ngô Gia Tự, Phan Rang, Ninh Thuận (gần bánh canh Nhường)</span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Chỉ đường</span>
-                <a class="direction-link" href="https://maps.google.com/maps?daddr=11.564652532386551,108.99499208002565" target="_blank" rel="noopener">
-                    <span class="direction-icon">&#128205;</span> Mở Google Maps
-                </a>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Điện thoại</span>
-                <a href="tel:0937513139">0937 513 139</a>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Giờ mở cửa</span>
-                <span>05:30 &ndash; 16:30</span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Fanpage</span>
-                <span>Milano Coffee 259</span>
-            </div>
-
-            <div class="map">
-                <iframe
-                    src="https://maps.google.com/maps?q=11.564652532386551,108.99499208002565&z=16&output=embed"
-                    loading="lazy"
-                    allowfullscreen
-                    title="Bản đồ Milano Coffee 259">
-                </iframe>
-            </div>
-
+            <div class="info-row"><span class="info-label">Địa chỉ</span><span>259 Ngô Gia Tự, Phan Rang, Ninh Thuận (gần bánh canh Nhường)</span></div>
+            <div class="info-row"><span class="info-label">Chỉ đường</span><a class="direction-link" href="https://maps.google.com/maps?daddr=11.564652532386551,108.99499208002565" target="_blank" rel="noopener"><span class="direction-icon">&#128205;</span> Mở Google Maps</a></div>
+            <div class="info-row"><span class="info-label">Điện thoại</span><a href="tel:0937513139">0937 513 139</a></div>
+            <div class="info-row"><span class="info-label">Giờ mở cửa</span><span>05:30 &ndash; 16:30</span></div>
+            <div class="info-row"><span class="info-label">Fanpage</span><span>Milano Coffee 259</span></div>
+            <div class="map"><iframe src="https://maps.google.com/maps?q=11.564652532386551,108.99499208002565&z=16&output=embed" loading="lazy" allowfullscreen title="Bản đồ Milano Coffee 259"></iframe></div>
         </div>
-
     </div>
 </section>
 
 <div class="footer-space"></div>
 
 <!-- STICKY -->
-<div class="sticky" aria-label="Liên hệ nhanh">
+<div class="sticky">
     <div class="sticky-wrap">
-
-        <button class="sticky-btn sticky-grab" onclick="handleAction('grab')" aria-label="Đặt đồ uống qua Grab">
-            ĐẶT QUA GRAB
-        </button>
-
-        <button class="sticky-btn sticky-zalo" onclick="handleAction('zalo')" aria-label="Chat Zalo">
-            CHAT ZALO
-        </button>
-
+        <button class="sticky-btn sticky-grab" onclick="handleAction('grab')">ĐẶT QUA GRAB</button>
+        <button class="sticky-btn sticky-zalo" onclick="handleAction('zalo')">CHAT ZALO</button>
     </div>
 </div>
 
-<script src="firebase-config.js"></script>
-<script src="script.js"></script>
+<script>
+// ========== FIREBASE ==========
+const firebaseConfig = {
+    apiKey: "AIzaSyCMaSv4Rak3P4Ve_OKQhcNPzrcizxzUvEI",
+    authDomain: "webmilano-aaf95.firebaseapp.com",
+    projectId: "webmilano-aaf95",
+    storageBucket: "webmilano-aaf95.firebasestorage.app",
+    messagingSenderId: "639661806336",
+    appId: "1:639661806336:web:e0e90756b9196dca07d9e5",
+    measurementId: "G-92YWMVG08R"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const menuRef = db.ref('menu');
+
+// ========== TELEGRAM ==========
+const TELEGRAM_BOT_TOKEN = "8813111415:AAHjX0-vXMM0dVgVqDSSZNbHtiQ2wiVsFrc";
+const TELEGRAM_CHAT_ID = "6372876364";
+const GRAB_LINK_ANDROID = "https://applink.grab.com/open?screenType=GRABFOOD&merchantIDs=5-C4JVVETAR751KA";
+const GRAB_LINK_IOS = "https://r.grab.com/o/MBVNJ3ii";
+const ZALO_LINK = "https://zalo.me/0937513139";
+const PHONE = "0937513139";
+
+// ========== CUSTOMER INFO ==========
+const STORAGE_KEY = "milano_customer_id";
+const VISIT_KEY = "milano_visit_count";
+function generateCustomerId() { return 'cust_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); }
+function getCustomerInfo() {
+    let customerId = localStorage.getItem(STORAGE_KEY);
+    let visitCount = parseInt(localStorage.getItem(VISIT_KEY)) || 0;
+    let isNew = false;
+    if (!customerId) {
+        customerId = generateCustomerId();
+        localStorage.setItem(STORAGE_KEY, customerId);
+        visitCount = 1;
+        localStorage.setItem(VISIT_KEY, visitCount);
+        isNew = true;
+    } else {
+        visitCount++;
+        localStorage.setItem(VISIT_KEY, visitCount);
+        isNew = false;
+    }
+    return { customerId, visitCount, isNew };
+}
+
+const SESSION_NOTIFIED_KEY = "milano_session_notified";
+function hasSessionNotified() { return sessionStorage.getItem(SESSION_NOTIFIED_KEY) === "true"; }
+function markSessionNotified() { sessionStorage.setItem(SESSION_NOTIFIED_KEY, "true"); }
+
+async function sendToTelegram(message) {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const now = new Date();
+    const timeStr = now.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+    const fullMessage = `🕐 ${timeStr}\n${message}`;
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: fullMessage, parse_mode: "HTML" })
+        });
+        const result = await response.json();
+        if (result.ok) console.log("✅ Đã gửi thông báo Telegram");
+        else console.error("❌ Lỗi:", result);
+    } catch (error) { console.error("❌ Lỗi gửi Telegram:", error); }
+}
+
+async function notifyVisit() {
+    if (hasSessionNotified()) return;
+    const customer = getCustomerInfo();
+    const userAgent = navigator.userAgent;
+    let device = "💻 Desktop";
+    if (/iPhone|iPad|iPod/.test(userAgent)) device = "📱 iOS";
+    else if (/Android/.test(userAgent)) device = "📱 Android";
+    let customerStatus = customer.isNew ? "🆓 🎉 **KHÁCH MỚI** 🎉" : `🔄 **KHÁCH CŨ** (lần ${customer.visitCount})`;
+    let message = `🌐 <b>🔴 CÓ NGƯỜI TRUY CẬP</b>\n━━━━━━━━━━━━━━━━\n${customerStatus}\n📱 <b>Thiết bị:</b> ${device}\n🆔 <b>Mã KH:</b> <code>${customer.customerId.substring(0, 12)}...</code>\n🔗 <b>URL:</b> ${window.location.href}`;
+    await sendToTelegram(message);
+    markSessionNotified();
+}
+
+async function notifyGrabClick() {
+    const customer = getCustomerInfo();
+    let message = `🛵 <b>GRAB CLICK</b>\n━━━━━━━━━━━━━━━━\n🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    await sendToTelegram(message);
+}
+async function notifyZaloClick() {
+    const customer = getCustomerInfo();
+    let message = `💬 <b>ZALO CLICK</b>\n━━━━━━━━━━━━━━━━\n🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    await sendToTelegram(message);
+}
+
+function isIOS() { return /iPhone|iPad|iPod/.test(navigator.userAgent); }
+function isAndroid() { return /Android/.test(navigator.userAgent); }
+
+function openGrab() {
+    notifyGrabClick();
+    const link = isIOS() ? GRAB_LINK_IOS : GRAB_LINK_ANDROID;
+    const a = document.createElement("a");
+    a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => { window.location.href = "https://grab.com/vn/"; }, 3000);
+}
+function openZalo() {
+    notifyZaloClick();
+    if (isIOS() || isAndroid()) {
+        window.location.href = "zalo://";
+        setTimeout(() => { window.location.href = ZALO_LINK; }, 1000);
+    } else { window.location.href = ZALO_LINK; }
+}
+function handleAction(type) { if (type === 'grab') openGrab(); else if (type === 'zalo') openZalo(); }
+
+// ========== MENU DEFAULT ==========
+const DEFAULT_MENU = [
+    { id: 'item_1', name: 'Cà phê Milano', price: '15.000đ - 25.000đ', desc: 'Cà phê đậm vị, pha theo công thức gia truyền.', image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_2', name: 'Bạc xỉu', price: '15.000đ - 25.000đ', desc: 'Vị ngọt nhẹ, béo thơm, phù hợp cho người mới uống cà phê.', image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_3', name: 'Matcha', price: '20.000đ - 30.000đ', desc: 'Bột matcha nhập khẩu, xanh mát, thanh nhẹ.', image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_4', name: 'Trà', price: '15.000đ - 25.000đ', desc: 'Trà tươi nguyên lá, hương vị tự nhiên, giải nhiệt.', image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_5', name: 'Nước trái cây', price: '20.000đ - 35.000đ', desc: 'Ép tươi từ trái cây theo mùa, giàu vitamin.', image: 'https://images.unsplash.com/photo-1543364195-bfe6e4932397?q=80&w=500&auto=format&fit=crop' },
+    { id: 'item_6', name: 'Yaourt', price: '10.000đ - 20.000đ', desc: 'Yaourt tự làm, chua nhẹ, béo mịn.', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=500&auto=format&fit=crop' }
+];
+
+// ========== RENDER MENU ==========
+function renderMenuGrid(menu) {
+    const grid = document.getElementById('menuGrid');
+    if (!grid) return;
+    if (!menu || menu.length === 0) {
+        grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Thực đơn đang cập nhật...</div>';
+        return;
+    }
+    grid.innerHTML = menu.map(item => `
+        <div class="menu-list-item">
+            <div class="menu-list-img">
+                <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/200?text=Milano'" />
+            </div>
+            <div class="menu-list-info">
+                <div class="menu-list-name">${escapeHtml(item.name)}</div>
+                <div class="menu-list-desc">${escapeHtml(item.desc)}</div>
+                <div class="menu-list-price">${escapeHtml(item.price)}</div>
+            </div>
+        </div>
+    `).join('');
+    setTimeout(() => {
+        document.querySelectorAll('.menu-list-item').forEach((el, i) => {
+            setTimeout(() => el.classList.add('visible'), i * 80);
+        });
+    }, 100);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function renderMenu() {
+    const grid = document.getElementById('menuGrid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
+    menuRef.on('value', function(snapshot) {
+        const menu = snapshot.val();
+        if (menu && menu.length > 0) {
+            renderMenuGrid(menu);
+        } else {
+            menuRef.set(DEFAULT_MENU).then(() => renderMenuGrid(DEFAULT_MENU));
+        }
+    });
+}
+
+// ========== GALLERY ==========
+function renderGallery() {
+    const container = document.getElementById('galleryScroll');
+    if (!container) return;
+    const galleryRef = db.ref('gallery');
+    galleryRef.on('value', function(snapshot) {
+        const images = snapshot.val();
+        if (!images || images.length === 0) {
+            container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
+            return;
+        }
+        container.innerHTML = images.map(url => `
+            <div class="gallery-item">
+                <div class="gallery-item-inner">
+                    <img src="${url}" alt="Hình ảnh quán" loading="lazy" onerror="this.parentElement.style.display='none'" />
+                    <div class="gallery-item-caption">&#10003; Milano Coffee 259</div>
+                </div>
+            </div>
+        `).join('');
+        setupGalleryEffect(container);
+    });
+}
+
+function setupGalleryEffect(container) {
+    const items = container.querySelectorAll('.gallery-item');
+    if (items.length === 0) return;
+    function updateGallery() {
+        const containerRect = container.getBoundingClientRect();
+        const centerX = containerRect.left + containerRect.width / 2;
+        items.forEach(item => {
+            const itemRect = item.getBoundingClientRect();
+            const itemCenter = itemRect.left + itemRect.width / 2;
+            const dist = Math.abs(centerX - itemCenter);
+            const maxDist = containerRect.width * 0.8;
+            const factor = Math.max(0, 1 - (dist / maxDist) * 0.15);
+            const opacity = Math.max(0.5, 1 - (dist / maxDist) * 0.5);
+            const inner = item.querySelector('.gallery-item-inner');
+            if (inner) {
+                inner.style.transform = 'scale(' + factor + ')';
+                inner.style.opacity = opacity;
+            }
+        });
+    }
+    let ticking = false;
+    container.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => { updateGallery(); ticking = false; });
+            ticking = true;
+        }
+    });
+    updateGallery();
+}
+
+// ========== REVEAL ON SCROLL ==========
+function initRevealOnScroll() {
+    const reveals = document.querySelectorAll('.reveal');
+    const menuItems = document.querySelectorAll('.menu-list-item');
+    function isInViewport(el, threshold) {
+        const rect = el.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const visibleTop = Math.max(0, rect.top);
+        const visibleBottom = Math.min(windowHeight, rect.bottom);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        return { visible: visibleHeight / rect.height > threshold };
+    }
+    function checkAll() {
+        reveals.forEach(el => {
+            const v = isInViewport(el, 0.15);
+            if (v.visible) el.classList.add('visible');
+            else el.classList.remove('visible');
+        });
+        menuItems.forEach((item, index) => {
+            const v = isInViewport(item, 0.05);
+            if (v.visible) setTimeout(() => item.classList.add('visible'), index * 80);
+            else item.classList.remove('visible');
+        });
+    }
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => { checkAll(); ticking = false; });
+            ticking = true;
+        }
+    });
+    checkAll();
+}
+
+// ========== KHỞI TẠO ==========
+let hasNotified = false;
+window.addEventListener("load", function() {
+    renderMenu();
+    renderGallery();
+    initRevealOnScroll();
+    if (!hasNotified) { hasNotified = true; notifyVisit(); }
+});
+</script>
 
 </body>
 </html>
