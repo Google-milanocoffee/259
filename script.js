@@ -50,6 +50,7 @@ function markSessionNotified() {
 // ========== GỬI THÔNG BÁO TELEGRAM ==========
 async function sendToTelegram(message) {
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    
     const now = new Date();
     const timeStr = now.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     const fullMessage = `🕐 ${timeStr}\n${message}`;
@@ -105,32 +106,54 @@ async function notifyVisit() {
 // ========== THÔNG BÁO CLICK GRAB ==========
 async function notifyGrabClick() {
     const customer = getCustomerInfo();
-    let message = `🛵 <b>GRAB CLICK</b>\n━━━━━━━━━━━━━━━━\n🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    
+    let message = `🛵 <b>GRAB CLICK</b>\n` +
+                  `━━━━━━━━━━━━━━━━\n` +
+                  `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
+                  `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    
     await sendToTelegram(message);
 }
 
 // ========== THÔNG BÁO CLICK ZALO ==========
 async function notifyZaloClick() {
     const customer = getCustomerInfo();
-    let message = `💬 <b>ZALO CLICK</b>\n━━━━━━━━━━━━━━━━\n🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    
+    let message = `💬 <b>ZALO CLICK</b>\n` +
+                  `━━━━━━━━━━━━━━━━\n` +
+                  `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
+                  `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    
     await sendToTelegram(message);
 }
 
 // ========== THÔNG BÁO GỌI ĐIỆN ==========
 async function notifyCallClick() {
     const customer = getCustomerInfo();
-    let message = `📞 <b>CALL CLICK</b>\n━━━━━━━━━━━━━━━━\n🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    
+    let message = `📞 <b>CALL CLICK</b>\n` +
+                  `━━━━━━━━━━━━━━━━\n` +
+                  `🆔 <b>KH:</b> ${customer.customerId.substring(0, 12)}...\n` +
+                  `📊 <b>Lần truy cập:</b> ${customer.visitCount}`;
+    
     await sendToTelegram(message);
 }
 
 // ========== PHÁT HIỆN THIẾT BỊ ==========
-function isIOS() { return /iPhone|iPad|iPod/.test(navigator.userAgent); }
-function isAndroid() { return /Android/.test(navigator.userAgent); }
+function isIOS() {
+    return /iPhone|iPad|iPod/.test(navigator.userAgent);
+}
+
+function isAndroid() {
+    return /Android/.test(navigator.userAgent);
+}
 
 // ========== MỞ GRAB ==========
 function openGrab() {
     notifyGrabClick();
+    
     const link = isIOS() ? GRAB_LINK_IOS : GRAB_LINK_ANDROID;
+    
     const a = document.createElement("a");
     a.href = link;
     a.target = "_blank";
@@ -138,15 +161,21 @@ function openGrab() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => { window.location.href = "https://grab.com/vn/"; }, 3000);
+    
+    setTimeout(() => {
+        window.location.href = "https://grab.com/vn/";
+    }, 3000);
 }
 
 // ========== MỞ ZALO ==========
 function openZalo() {
     notifyZaloClick();
+    
     if (isIOS() || isAndroid()) {
         window.location.href = "zalo://";
-        setTimeout(() => { window.location.href = ZALO_LINK; }, 1000);
+        setTimeout(() => {
+            window.location.href = ZALO_LINK;
+        }, 1000);
     } else {
         window.location.href = ZALO_LINK;
     }
@@ -160,28 +189,69 @@ function callNow() {
 
 // ========== HANDLE ACTION ==========
 function handleAction(type) {
-    if (type === 'grab') openGrab();
-    else if (type === 'zalo') openZalo();
+    if (type === 'grab') {
+        openGrab();
+    } else if (type === 'zalo') {
+        openZalo();
+    }
 }
 
-// ========== MENU DEFAULT ==========
+// ========== MENU DYNAMIC - FIREBASE ==========
 const DEFAULT_MENU = [
-    { id: 'item_1', name: 'Cà phê Milano', price: '15.000đ - 25.000đ', desc: 'Cà phê đậm vị, pha theo công thức gia truyền.', image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop' },
-    { id: 'item_2', name: 'Bạc xỉu', price: '15.000đ - 25.000đ', desc: 'Vị ngọt nhẹ, béo thơm, phù hợp cho người mới uống cà phê.', image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=500&auto=format&fit=crop' },
-    { id: 'item_3', name: 'Matcha', price: '20.000đ - 30.000đ', desc: 'Bột matcha nhập khẩu, xanh mát, thanh nhẹ.', image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=500&auto=format&fit=crop' },
-    { id: 'item_4', name: 'Trà', price: '15.000đ - 25.000đ', desc: 'Trà tươi nguyên lá, hương vị tự nhiên, giải nhiệt.', image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500&auto=format&fit=crop' },
-    { id: 'item_5', name: 'Nước trái cây', price: '20.000đ - 35.000đ', desc: 'Ép tươi từ trái cây theo mùa, giàu vitamin.', image: 'https://images.unsplash.com/photo-1543364195-bfe6e4932397?q=80&w=500&auto=format&fit=crop' },
-    { id: 'item_6', name: 'Yaourt', price: '10.000đ - 20.000đ', desc: 'Yaourt tự làm, chua nhẹ, béo mịn.', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=500&auto=format&fit=crop' }
+    {
+        id: 'item_1',
+        name: 'Cà phê Milano',
+        price: '15.000đ - 25.000đ',
+        desc: 'Cà phê đậm vị, pha theo công thức gia truyền.',
+        image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_2',
+        name: 'Bạc xỉu',
+        price: '15.000đ - 25.000đ',
+        desc: 'Vị ngọt nhẹ, béo thơm, phù hợp cho người mới uống cà phê.',
+        image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_3',
+        name: 'Matcha',
+        price: '20.000đ - 30.000đ',
+        desc: 'Bột matcha nhập khẩu, xanh mát, thanh nhẹ.',
+        image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_4',
+        name: 'Trà',
+        price: '15.000đ - 25.000đ',
+        desc: 'Trà tươi nguyên lá, hương vị tự nhiên, giải nhiệt.',
+        image: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_5',
+        name: 'Nước trái cây',
+        price: '20.000đ - 35.000đ',
+        desc: 'Ép tươi từ trái cây theo mùa, giàu vitamin.',
+        image: 'https://images.unsplash.com/photo-1543364195-bfe6e4932397?q=80&w=500&auto=format&fit=crop'
+    },
+    {
+        id: 'item_6',
+        name: 'Yaourt',
+        price: '10.000đ - 20.000đ',
+        desc: 'Yaourt tự làm, chua nhẹ, béo mịn.',
+        image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=500&auto=format&fit=crop'
+    }
 ];
 
-// ========== RENDER MENU (realtime) ==========
+// Render menu dạng danh sách (giống Grab)
 function renderMenuGrid(menu) {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
+    
     if (!menu || menu.length === 0) {
         grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Thực đơn đang cập nhật...</div>';
         return;
     }
+    
     grid.innerHTML = menu.map(item => `
         <div class="menu-list-item">
             <div class="menu-list-img">
@@ -196,60 +266,44 @@ function renderMenuGrid(menu) {
     `).join('');
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-let menuListener = null;
-
-function renderMenu() {
-    const grid = document.getElementById('menuGrid');
-    if (!grid) return;
-
-    if (menuListener) {
-        menuRef.off('value', menuListener);
-        menuListener = null;
-    }
-
-    grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
-
-    // Kiểm tra và set default nếu cần
-    menuRef.once('value', function(snapshot) {
+// Khởi tạo menu mặc định lên Firebase nếu chưa có
+function initDefaultMenu() {
+    menuRef.once('value').then(snapshot => {
         if (!snapshot.exists()) {
             menuRef.set(DEFAULT_MENU);
         }
-        // Gắn listener realtime
-        menuListener = function(snap) {
-            const menu = snap.val();
-            if (menu && menu.length > 0) {
-                renderMenuGrid(menu);
-            } else {
-                grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Thực đơn đang cập nhật...</div>';
-            }
-        };
-        menuRef.on('value', menuListener);
     });
 }
 
-// ========== GALLERY REALTIME ==========
+// Render menu: lấy dữ liệu realtime từ Firebase, không cache
+function renderMenu() {
+    const grid = document.getElementById('menuGrid');
+    if (!grid) return;
+    
+    // Hiển thị loading
+    grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
+    
+    // Lấy dữ liệu realtime từ Firebase (on thay vì once để cập nhật realtime)
+    menuRef.on('value', snapshot => {
+        const menu = snapshot.val();
+        
+        if (menu && menu.length > 0) {
+            renderMenuGrid(menu);
+        } else {
+            renderMenuGrid(null);
+        }
+    });
+}
+
+// ========== GALLERY ẢNH QUÁN ==========
 const GALLERY_REF_KEY = 'gallery';
-let galleryListener = null;
 
 function renderGallery() {
     const container = document.getElementById('galleryScroll');
     if (!container) return;
 
-    if (galleryListener) {
-        const galleryRef = db.ref(GALLERY_REF_KEY);
-        galleryRef.off('value', galleryListener);
-        galleryListener = null;
-    }
-
     const galleryRef = db.ref(GALLERY_REF_KEY);
-    galleryListener = function(snapshot) {
+    galleryRef.once('value', function(snapshot) {
         const images = snapshot.val();
         if (!images || images.length === 0) {
             container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
@@ -264,9 +318,9 @@ function renderGallery() {
                 '</div>';
         }).join('');
 
+        // Hiệu ứng vuốt mượt: scale/opacity các ảnh phụ
         setupGalleryEffect(container);
-    };
-    galleryRef.on('value', galleryListener);
+    });
 }
 
 function setupGalleryEffect(container) {
@@ -276,13 +330,18 @@ function setupGalleryEffect(container) {
     function updateGallery() {
         var containerRect = container.getBoundingClientRect();
         var centerX = containerRect.left + containerRect.width / 2;
+
         items.forEach(function(item) {
             var itemRect = item.getBoundingClientRect();
             var itemCenter = itemRect.left + itemRect.width / 2;
             var dist = Math.abs(centerX - itemCenter);
             var maxDist = containerRect.width * 0.8;
+
+            // Tính scale: 1.0 ở trung tâm, 0.85 ở xa
             var factor = Math.max(0, 1 - (dist / maxDist) * 0.15);
+            // Opacity: 1 ở trung tâm, 0.5 ở xa
             var opacity = Math.max(0.5, 1 - (dist / maxDist) * 0.5);
+
             var inner = item.querySelector('.gallery-item-inner');
             if (inner) {
                 inner.style.transform = 'scale(' + factor + ')';
@@ -291,6 +350,7 @@ function setupGalleryEffect(container) {
         });
     }
 
+    // Dùng requestAnimationFrame cho mượt
     var ticking = false;
     container.addEventListener('scroll', function() {
         if (!ticking) {
@@ -301,10 +361,20 @@ function setupGalleryEffect(container) {
             ticking = true;
         }
     });
+
+    // Cập nhật lần đầu
     updateGallery();
 }
 
-// ========== REVEAL ON SCROLL ==========
+// Helper: chống XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ========== REVEAL KHI SCROLL DỌC (dạng sóng, 2 chiều) ==========
 function initRevealOnScroll() {
     var reveals = document.querySelectorAll('.reveal');
     var menuItems = document.querySelectorAll('.menu-list-item');
@@ -312,23 +382,42 @@ function initRevealOnScroll() {
     function isInViewport(el, threshold) {
         var rect = el.getBoundingClientRect();
         var windowHeight = window.innerHeight;
+        var windowWidth = window.innerWidth;
+        
+        // Tính % chiều cao phần tử đang trong viewport
         var visibleTop = Math.max(0, rect.top);
         var visibleBottom = Math.min(windowHeight, rect.bottom);
         var visibleHeight = Math.max(0, visibleBottom - visibleTop);
         var percentVisible = visibleHeight / rect.height;
-        return { visible: percentVisible > threshold };
+        
+        return {
+            visible: percentVisible > threshold,
+            percent: percentVisible,
+            fromTop: rect.top < windowHeight && rect.bottom > 0,
+            rect: rect
+        };
     }
     
     function checkAll() {
+        // Check sections
         reveals.forEach(function(el) {
             var v = isInViewport(el, 0.15);
-            if (v.visible) el.classList.add('visible');
-            else el.classList.remove('visible');
+            if (v.visible) {
+                el.classList.add('visible');
+            } else {
+                el.classList.remove('visible');
+            }
         });
+        
+        // Check menu items với stagger
         menuItems.forEach(function(item, index) {
             var v = isInViewport(item, 0.05);
             if (v.visible) {
-                setTimeout(function() { item.classList.add('visible'); }, index * 80);
+                // Stagger delay theo thứ tự
+                var delay = index * 80;
+                setTimeout(function() {
+                    item.classList.add('visible');
+                }, delay);
             } else {
                 item.classList.remove('visible');
             }
@@ -338,21 +427,21 @@ function initRevealOnScroll() {
     var ticking = false;
     window.addEventListener('scroll', function() {
         if (!ticking) {
-            requestAnimationFrame(function() { checkAll(); ticking = false; });
+            requestAnimationFrame(function() {
+                checkAll();
+                ticking = false;
+            });
             ticking = true;
         }
     });
+    
     checkAll();
 }
 
 // ========== KHỞI TẠO ==========
 let hasNotified = false;
 window.addEventListener("load", function() {
-    // Đợi Firebase và DOM sẵn sàng
-    if (typeof menuRef === 'undefined') {
-        console.error('menuRef chưa được khởi tạo! Kiểm tra firebase-config.js.');
-        return;
-    }
+    initDefaultMenu();
     renderMenu();
     renderGallery();
     initRevealOnScroll();
