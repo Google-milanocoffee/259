@@ -242,7 +242,7 @@ const DEFAULT_MENU = [
     }
 ];
 
-// Render menu dạng danh sách (giống Grab)
+// Render menu dạng danh sách
 function renderMenuGrid(menu) {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
@@ -266,44 +266,57 @@ function renderMenuGrid(menu) {
     `).join('');
 }
 
-// Khởi tạo menu mặc định lên Firebase nếu chưa có
-function initDefaultMenu() {
-    menuRef.once('value').then(snapshot => {
-        if (!snapshot.exists()) {
-            menuRef.set(DEFAULT_MENU);
-        }
-    });
+// Helper chống XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-// Render menu: lấy dữ liệu realtime từ Firebase, không cache
+// ========== MENU REALTIME TRÊN TRANG CHỦ ==========
+let menuListener = null;
+
 function renderMenu() {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
-    
-    // Hiển thị loading
+
+    // Xóa listener cũ nếu có
+    if (menuListener) {
+        menuRef.off('value', menuListener);
+        menuListener = null;
+    }
+
     grid.innerHTML = '<div style="text-align:center;color:#666;padding:40px 0;">Đang tải thực đơn...</div>';
-    
-    // Lấy dữ liệu realtime từ Firebase (on thay vì once để cập nhật realtime)
-    menuRef.on('value', snapshot => {
+
+    menuListener = function(snapshot) {
         const menu = snapshot.val();
-        
         if (menu && menu.length > 0) {
             renderMenuGrid(menu);
         } else {
-            renderMenuGrid(null);
+            // Nếu chưa có dữ liệu, set default
+            menuRef.set(DEFAULT_MENU);
         }
-    });
+    };
+    menuRef.on('value', menuListener);
 }
 
-// ========== GALLERY ẢNH QUÁN ==========
+// ========== GALLERY ẢNH QUÁN (REALTIME) ==========
 const GALLERY_REF_KEY = 'gallery';
+let galleryListener = null;
 
 function renderGallery() {
     const container = document.getElementById('galleryScroll');
     if (!container) return;
 
+    if (galleryListener) {
+        const galleryRef = db.ref(GALLERY_REF_KEY);
+        galleryRef.off('value', galleryListener);
+        galleryListener = null;
+    }
+
     const galleryRef = db.ref(GALLERY_REF_KEY);
-    galleryRef.once('value', function(snapshot) {
+    galleryListener = function(snapshot) {
         const images = snapshot.val();
         if (!images || images.length === 0) {
             container.innerHTML = '<div class="gallery-empty">Chưa có hình ảnh</div>';
@@ -318,9 +331,9 @@ function renderGallery() {
                 '</div>';
         }).join('');
 
-        // Hiệu ứng vuốt mượt: scale/opacity các ảnh phụ
         setupGalleryEffect(container);
-    });
+    };
+    galleryRef.on('value', galleryListener);
 }
 
 function setupGalleryEffect(container) {
@@ -337,9 +350,7 @@ function setupGalleryEffect(container) {
             var dist = Math.abs(centerX - itemCenter);
             var maxDist = containerRect.width * 0.8;
 
-            // Tính scale: 1.0 ở trung tâm, 0.85 ở xa
             var factor = Math.max(0, 1 - (dist / maxDist) * 0.15);
-            // Opacity: 1 ở trung tâm, 0.5 ở xa
             var opacity = Math.max(0.5, 1 - (dist / maxDist) * 0.5);
 
             var inner = item.querySelector('.gallery-item-inner');
@@ -350,7 +361,6 @@ function setupGalleryEffect(container) {
         });
     }
 
-    // Dùng requestAnimationFrame cho mượt
     var ticking = false;
     container.addEventListener('scroll', function() {
         if (!ticking) {
@@ -362,19 +372,10 @@ function setupGalleryEffect(container) {
         }
     });
 
-    // Cập nhật lần đầu
     updateGallery();
 }
 
-// Helper: chống XSS
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ========== REVEAL KHI SCROLL DỌC (dạng sóng, 2 chiều) ==========
+// ========== REVEAL KHI SCROLL ==========
 function initRevealOnScroll() {
     var reveals = document.querySelectorAll('.reveal');
     var menuItems = document.querySelectorAll('.menu-list-item');
@@ -382,24 +383,14 @@ function initRevealOnScroll() {
     function isInViewport(el, threshold) {
         var rect = el.getBoundingClientRect();
         var windowHeight = window.innerHeight;
-        var windowWidth = window.innerWidth;
-        
-        // Tính % chiều cao phần tử đang trong viewport
         var visibleTop = Math.max(0, rect.top);
         var visibleBottom = Math.min(windowHeight, rect.bottom);
         var visibleHeight = Math.max(0, visibleBottom - visibleTop);
         var percentVisible = visibleHeight / rect.height;
-        
-        return {
-            visible: percentVisible > threshold,
-            percent: percentVisible,
-            fromTop: rect.top < windowHeight && rect.bottom > 0,
-            rect: rect
-        };
+        return { visible: percentVisible > threshold, percent: percentVisible };
     }
     
     function checkAll() {
-        // Check sections
         reveals.forEach(function(el) {
             var v = isInViewport(el, 0.15);
             if (v.visible) {
@@ -409,11 +400,9 @@ function initRevealOnScroll() {
             }
         });
         
-        // Check menu items với stagger
         menuItems.forEach(function(item, index) {
             var v = isInViewport(item, 0.05);
             if (v.visible) {
-                // Stagger delay theo thứ tự
                 var delay = index * 80;
                 setTimeout(function() {
                     item.classList.add('visible');
@@ -441,11 +430,23 @@ function initRevealOnScroll() {
 // ========== KHỞI TẠO ==========
 let hasNotified = false;
 window.addEventListener("load", function() {
-    initDefaultMenu();
+    // Khởi tạo menu (set default nếu chưa có)
+    menuRef.once('value').then(snapshot => {
+        if (!snapshot.exists()) {
+            menuRef.set(DEFAULT_MENU);
+        }
+    });
+
+    // Render menu (realtime)
     renderMenu();
+
+    // Render gallery (realtime)
     renderGallery();
+
+    // Init scroll effect
     initRevealOnScroll();
-    
+
+    // Notify visit
     if (!hasNotified) {
         hasNotified = true;
         notifyVisit();
